@@ -1,0 +1,155 @@
+═══════════════════════════════════════════════════════
+          🎉 PROYECTO VIP MLM - LISTO PARA USAR 🎉
+═══════════════════════════════════════════════════════
+
+📍 URL DEL SISTEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Frontend:     http://localhost:3000
+Panel Admin:  http://localhost:3000/admin
+
+
+🔐 CREDENCIALES DE ADMINISTRADOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Usuario:      admin
+Email:        admin@vip.com
+Contraseña:   admin123
+Código:       ADMIN001
+
+⚠️  IMPORTANTE: Cambia esta contraseña en producción
+
+
+📊 PAQUETES VIP CONFIGURADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VIP 1:  Bs 100   → Bs 4/día   (4% diario)
+VIP 2:  Bs 300   → Bs 10/día  (3.33% diario)
+VIP 3:  Bs 500   → Bs 17/día  (3.4% diario)
+VIP 4:  Bs 1000  → Bs 35/día  (3.5% diario)
+VIP 5:  Bs 2000  → Bs 70/día  (3.5% diario)
+VIP 6:  Bs 3000  → Bs 105/día (3.5% diario)
+VIP 7:  Bs 4000  → Bs 135/día (3.375% diario)
+
+
+💰 BONOS DE REFERIDO CONFIGURADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nivel 1 (Directo):     12% de la inversión
+Nivel 2:               5% de la inversión
+Nivel 3:               1% de la inversión
+
+
+⚙️ CONFIGURACIÓN PENDIENTE (OBLIGATORIO)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔴 SUPABASE STORAGE - CREAR BUCKET "receipts"
+
+1. Ir a: https://supabase.com/dashboard/project/nleosupwdvxkgskqplpp
+2. Click en "Storage" en el menú lateral
+3. Click en "Create a new bucket"
+4. Nombre: receipts
+5. Marcar como "Public bucket": ON
+6. Click en "Create bucket"
+
+Sin esto, las subidas de comprobantes y QR no funcionarán.
+
+
+🚀 FLUJO DE PRUEBA COMPLETO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. REGISTRO
+   → http://localhost:3000/signup
+   → Usa código ADMIN001 como patrocinador (opcional)
+   → Completa el formulario
+
+2. LOGIN
+   → http://localhost:3000/login
+   → Ingresa con tu usuario
+
+3. COMPRAR VIP
+   → Click en "Paks" (bottom nav)
+   → Selecciona VIP 1
+   → Sube cualquier imagen como comprobante
+   → Click en "Confirmar Compra"
+
+4. APROBAR COMPRA (como admin)
+   → Salir de tu cuenta
+   → Login como admin/admin123
+   → Ir a http://localhost:3000/admin
+   → Click en "Aprobar" en la compra pendiente
+   → Los bonos se pagan automáticamente
+
+5. EJECUTAR GANANCIAS DIARIAS (como admin)
+   → En admin panel, tab "Ganancias Diarias"
+   → Click en "Ejecutar Proceso"
+   → Cada usuario con VIP activo recibe su ganancia
+
+6. SOLICITAR RETIRO (como usuario)
+   → Login como usuario normal
+   → Click en "Retiros" (bottom nav)
+   → Ingresar monto
+   → Subir QR de destino
+   → Click en "Solicitar Retiro"
+
+7. PROCESAR RETIRO (como admin)
+   → Login como admin
+   → Admin panel → "Retiros Pendientes"
+   → Click en "Marcar Pagado" o "Rechazar"
+
+
+✅ CARACTERÍSTICAS IMPLEMENTADAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Sistema de registro y login con JWT
+✓ Recuperación de contraseña
+✓ Sistema MLM con códigos de referido
+✓ 7 Paquetes VIP con ganancias diarias
+✓ Dashboard premium (diseño futurista dorado/oscuro)
+✓ Carruseles de banners (top y bottom)
+✓ Bottom navigation fija
+✓ Compra de VIP con subida de comprobante
+✓ Aprobación/rechazo de compras (admin)
+✓ Sistema de retiros con QR
+✓ Wallet completo con ledger de transacciones
+✓ Bonos automáticos (3 niveles)
+✓ Ganancias diarias manuales (admin)
+✓ Panel admin completo
+✓ 1 VIP activo por usuario
+✓ Toda la lógica en backend (seguro)
+✓ Responsive (móvil y desktop)
+✓ Tipografía Montserrat premium
+
+
+🛠️ COMANDOS ÚTILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Iniciar servidor:          npm run dev
+Ver base de datos:         npx prisma studio
+Regenerar Prisma client:   npx prisma generate
+Sincronizar schema:        npx prisma db push
+
+
+📁 ARCHIVOS IMPORTANTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INSTRUCCIONES.md      → Guía completa y detallada
+CREDENCIALES.txt      → Este archivo
+README.md             → Documentación técnica
+.env                  → Variables de entorno para Prisma
+.env.local            → Variables de entorno para Next.js
+
+
+🎨 DISEÑO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Colores:
+  Fondo:          #0B0B0B (negro profundo)
+  Cards:          #2B2B2B (gris oscuro)
+  Dorado:         #C9A24D
+  Dorado brillo:  #E6C87A
+  Texto:          #FFFFFF
+
+Tipografía: Montserrat (Google Fonts)
+  Títulos:     700 (bold)
+  Subtítulos:  300 (light uppercase)
+  UI:          500 (medium)
+  Párrafos:    400 (regular)
+
+
+═══════════════════════════════════════════════════════
+              ¡TODO LISTO PARA PROBAR! 🚀
+       Solo falta configurar el bucket en Supabase
+═══════════════════════════════════════════════════════
