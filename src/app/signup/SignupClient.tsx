@@ -1,17 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 
-export default function SignupClient() {
+export default function SignupClient({
+  initialSponsorCode = '',
+}: {
+  initialSponsorCode?: string
+}) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
-    sponsor_code: '',
+    sponsor_code: initialSponsorCode,
     full_name: '',
     username: '',
     email: '',
@@ -21,15 +24,7 @@ export default function SignupClient() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { showToast } = useToast()
-  const [lockSponsor, setLockSponsor] = useState(false)
-
-  useEffect(() => {
-    const code = searchParams.get('ref')
-    if (code) {
-      setFormData((prev) => ({ ...prev, sponsor_code: code }))
-      setLockSponsor(true)
-    }
-  }, [searchParams])
+  const lockSponsor = Boolean(initialSponsorCode)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
