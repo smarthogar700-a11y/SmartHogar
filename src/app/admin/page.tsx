@@ -650,8 +650,7 @@ export default function AdminPage() {
     return acc
   }, {} as Record<string, string[]>)
 
-  const activeUsersList = purchases.reduce((acc, purchase) => {
-    if (purchase.status !== 'ACTIVE') return acc
+  const purchasesUsersList = purchases.reduce((acc, purchase) => {
     if (!acc.some((item) => item.user.id === purchase.user.id)) {
       acc.push(purchase)
     }
@@ -659,7 +658,7 @@ export default function AdminPage() {
   }, [] as Purchase[])
 
   const filteredActiveUsersList = purchaseSearch.trim()
-    ? activeUsersList.filter((purchase) => {
+    ? purchasesUsersList.filter((purchase) => {
         const query = purchaseSearch.trim().toLowerCase()
         return (
           purchase.user.username.toLowerCase().includes(query) ||
@@ -667,7 +666,7 @@ export default function AdminPage() {
           purchase.user.email.toLowerCase().includes(query)
         )
       })
-    : activeUsersList
+    : purchasesUsersList
 
   const filteredActiveUsers = activeSearch.trim()
     ? activeUsers.filter((entry) => {
