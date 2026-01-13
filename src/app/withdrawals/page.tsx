@@ -164,6 +164,9 @@ export default function WithdrawalsPage() {
             Retiros desde Bs 30. Pagos de lunes a viernes. Se acreditan de 24 a 72 horas
             despues de la solicitud.
           </p>
+          <p className="mt-2 text-xs text-text-secondary">
+            ⚠️ Se aplicará un 10 % de descuento a toda la solicitud de pago. ⚠️
+          </p>
         </div>
 
         <Card glassEffect>
