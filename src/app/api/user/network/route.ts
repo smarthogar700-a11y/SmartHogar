@@ -7,28 +7,38 @@ interface UserNetworkNode {
   username: string
   full_name: string
   status: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE'
-  vip_packages: string[]
+  vip_packages: { name: string; level: number }[]
   referrals: UserNetworkNode[]
 }
 
 async function getUserDownline(
   userId: string,
   depth: number = 0,
-  maxDepth: number = 10
+  maxDepth: number = 5
 ): Promise<UserNetworkNode | null> {
   if (depth > maxDepth) {
     return null
   }
 
   try {
-    console.log(`[D${depth}] Getting user: ${userId}`)
-    
+    // Query optimizada: traer usuario + compras + referidos en una sola pasada
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         username: true,
         full_name: true,
+        purchases: {
+          select: {
+            status: true,
+            vip_package: {
+              select: { name: true, level: true },
+            },
+          },
+        },
+        referrals: {
+          select: { id: true },
+        },
       },
     })
 
@@ -36,64 +46,27 @@ async function getUserDownline(
       return null
     }
 
-    console.log(`[D${depth}] User: ${user.username}`)
-
-    // Get purchases with VIP package info
+    // Determinar estado
     let status: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE' = 'INACTIVO'
-    const vipPackages = new Set<string>()
+    const activeVips = user.purchases.filter(p => p.status === 'ACTIVE')
+    const pendingVips = user.purchases.filter(p => p.status === 'PENDING')
 
-    try {
-      const purchases = await prisma.purchase.findMany({
-        where: { user_id: userId },
-        select: {
-          status: true,
-          vip_package: {
-            select: { name: true },
-          },
-        },
-      })
-
-      const activeCount = purchases.filter((p) => p.status === 'ACTIVE').length
-      const pendingCount = purchases.filter((p) => p.status === 'PENDING').length
-
-      if (pendingCount > 0) {
-        status = 'PENDIENTE'
-      } else if (activeCount > 0) {
-        status = 'ACTIVO'
-      }
-
-      // Collect VIP package names
-      for (const purchase of purchases) {
-        vipPackages.add(purchase.vip_package.name)
-      }
-    } catch (err) {
-      console.log(`[D${depth}] Error getting purchases:`, err)
+    if (pendingVips.length > 0) {
+      status = 'PENDIENTE'
+    } else if (activeVips.length > 0) {
+      status = 'ACTIVO'
     }
 
-    console.log(`[D${depth}] Status: ${status}, VIPs: ${vipPackages.size}`)
+    // Traer solo los VIPs activos
+    const vipPackages = activeVips.map(p => p.vip_package)
 
-    // Get direct referrals and build network
+    // Procesar referidos recursivamente
     const referrals: UserNetworkNode[] = []
-    try {
-      const directReferrals = await prisma.user.findMany({
-        where: { sponsor_id: userId },
-        select: { id: true },
-      })
-
-      console.log(`[D${depth}] Found ${directReferrals.length} referrals`)
-
-      for (const ref of directReferrals) {
-        try {
-          const refNode = await getUserDownline(ref.id, depth + 1, maxDepth)
-          if (refNode) {
-            referrals.push(refNode)
-          }
-        } catch (err) {
-          console.log(`[D${depth}] Error in referral:`, err)
-        }
+    for (const ref of user.referrals) {
+      const refNode = await getUserDownline(ref.id, depth + 1, maxDepth)
+      if (refNode) {
+        referrals.push(refNode)
       }
-    } catch (err) {
-      console.log(`[D${depth}] Error getting referrals:`, err)
     }
 
     return {
@@ -101,22 +74,19 @@ async function getUserDownline(
       username: user.username,
       full_name: user.full_name,
       status,
-      vip_packages: Array.from(vipPackages),
+      vip_packages,
       referrals,
     }
   } catch (err) {
-    console.error(`[D${depth}] Fatal error:`, err)
+    console.error(`Error getUserDownline depth ${depth}:`, err)
     return null
   }
 }
 
 export async function GET(req: NextRequest) {
-  console.log('=== Network API ===')
-  
   const authResult = requireAuth(req)
-  
+
   if ('error' in authResult) {
-    console.log('Auth failed:', authResult.error)
     return NextResponse.json(
       { error: authResult.error },
       { status: authResult.status }
@@ -124,19 +94,15 @@ export async function GET(req: NextRequest) {
   }
 
   const userId = authResult.user.userId
-  console.log('User ID:', userId)
 
   if (!userId) {
     return NextResponse.json({ error: 'No user ID' }, { status: 401 })
   }
 
   try {
-    console.log('Calling getUserDownline...')
     const network = await getUserDownline(userId)
-    console.log('getUserDownline returned:', network ? 'object' : 'null')
 
     if (!network) {
-      console.log('Returning empty network for user:', userId)
       return NextResponse.json({
         id: userId,
         username: 'unknown',
@@ -147,13 +113,10 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    console.log('Returning network')
     return NextResponse.json(network)
   } catch (error) {
-    console.error('=== NETWORK ERROR ===')
-    console.error('Error:', error)
-    console.error('Stack:', error instanceof Error ? error.stack : 'no stack')
-    
+    console.error('Network API error:', error)
+
     return NextResponse.json(
       {
         id: userId,

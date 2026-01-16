@@ -126,7 +126,16 @@ export default function NetworkPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pb-20">
-        <p className="text-gold text-xl">Cargando tu red...</p>
+        <Card glassEffect>
+          <div className="space-y-3 text-center">
+            <p className="text-gold text-lg font-semibold">Cargando tu red...</p>
+            <div className="flex gap-2 justify-center">
+              <div className="w-2 h-2 bg-gold rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+          </div>
+        </Card>
       </div>
     )
   }
