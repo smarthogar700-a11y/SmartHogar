@@ -14,14 +14,14 @@ interface UserNetworkNode {
 async function getUserDownline(
   userId: string,
   depth: number = 0,
-  maxDepth: number = 5
+  maxDepth: number = 2
 ): Promise<UserNetworkNode | null> {
   if (depth > maxDepth) {
     return null
   }
 
   try {
-    // Query optimizada: traer usuario + compras + referidos en una sola pasada
+    // Query optimizada: traer usuario + compras
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -35,9 +35,6 @@ async function getUserDownline(
               select: { name: true, level: true },
             },
           },
-        },
-        referrals: {
-          select: { id: true },
         },
       },
     })
@@ -60,12 +57,20 @@ async function getUserDownline(
     // Traer solo los VIPs activos
     const vipPackages = activeVips.map(p => p.vip_package)
 
-    // Procesar referidos recursivamente
-    const referrals: UserNetworkNode[] = []
-    for (const ref of user.referrals) {
-      const refNode = await getUserDownline(ref.id, depth + 1, maxDepth)
-      if (refNode) {
-        referrals.push(refNode)
+    // Solo en nivel 1: traer referidos. En niveles más profundos devolver array vacío
+    let referrals: UserNetworkNode[] = []
+    
+    if (depth < maxDepth) {
+      const directReferrals = await prisma.user.findMany({
+        where: { sponsor_id: userId },
+        select: { id: true },
+      })
+
+      for (const ref of directReferrals) {
+        const refNode = await getUserDownline(ref.id, depth + 1, maxDepth)
+        if (refNode) {
+          referrals.push(refNode)
+        }
       }
     }
 
@@ -100,7 +105,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const network = await getUserDownline(userId)
+    const network = await getUserDownline(userId, 0, 2)
 
     if (!network) {
       return NextResponse.json({
