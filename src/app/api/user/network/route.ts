@@ -7,85 +7,8 @@ interface UserNetworkNode {
   username: string
   full_name: string
   status: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE'
-  vip_packages: { name: string; level: number }[]
+  vip_packages: { name: string; level: number; status: string; activated_at?: string }[]
   referrals: UserNetworkNode[]
-}
-
-async function getUserDownline(
-  userId: string,
-  depth: number = 0,
-  maxDepth: number = 2
-): Promise<UserNetworkNode | null> {
-  if (depth > maxDepth) {
-    return null
-  }
-
-  try {
-    // Query optimizada: traer usuario + compras
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        username: true,
-        full_name: true,
-        purchases: {
-          select: {
-            status: true,
-            vip_package: {
-              select: { name: true, level: true },
-            },
-          },
-        },
-      },
-    })
-
-    if (!user) {
-      return null
-    }
-
-    // Determinar estado
-    let status: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE' = 'INACTIVO'
-    const activeVips = user.purchases.filter(p => p.status === 'ACTIVE')
-    const pendingVips = user.purchases.filter(p => p.status === 'PENDING')
-
-    if (pendingVips.length > 0) {
-      status = 'PENDIENTE'
-    } else if (activeVips.length > 0) {
-      status = 'ACTIVO'
-    }
-
-    // Traer solo los VIPs activos
-    const vipPackages = activeVips.map(p => p.vip_package)
-
-    // Solo en nivel 1: traer referidos. En niveles más profundos devolver array vacío
-    let referrals: UserNetworkNode[] = []
-    
-    if (depth < maxDepth) {
-      const directReferrals = await prisma.user.findMany({
-        where: { sponsor_id: userId },
-        select: { id: true },
-      })
-
-      for (const ref of directReferrals) {
-        const refNode = await getUserDownline(ref.id, depth + 1, maxDepth)
-        if (refNode) {
-          referrals.push(refNode)
-        }
-      }
-    }
-
-    return {
-      id: user.id,
-      username: user.username,
-      full_name: user.full_name,
-      status,
-      vip_packages,
-      referrals,
-    }
-  } catch (err) {
-    console.error(`Error getUserDownline depth ${depth}:`, err)
-    return null
-  }
 }
 
 export async function GET(req: NextRequest) {
@@ -105,9 +28,71 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const network = await getUserDownline(userId, 0, 2)
+    // Query única - traer usuario con compras y referidos directos
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        full_name: true,
+        purchases: {
+          select: {
+            status: true,
+            activated_at: true,
+            vip_package: {
+              select: { name: true, level: true },
+            },
+          },
+        },
+        referrals: {
+          select: {
+            id: true,
+            username: true,
+            full_name: true,
+            purchases: {
+              select: {
+                status: true,
+                vip_package: {
+                  select: { name: true, level: true },
+                },
+              },
+            },
+            referrals: {
+              select: {
+                id: true,
+                username: true,
+                full_name: true,
+                purchases: {
+                  select: {
+                    status: true,
+                    vip_package: {
+                      select: { name: true, level: true },
+                    },
+                  },
+                },
+                referrals: {
+                  select: {
+                    id: true,
+                    username: true,
+                    full_name: true,
+                    purchases: {
+                      select: {
+                        status: true,
+                        vip_package: {
+                          select: { name: true, level: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
 
-    if (!network) {
+    if (!user) {
       return NextResponse.json({
         id: userId,
         username: 'unknown',
@@ -118,7 +103,54 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    return NextResponse.json(network)
+    // Procesar usuario actual
+    let status: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE' = 'INACTIVO'
+    const activeVips = user.purchases.filter(p => p.status === 'ACTIVE')
+    const pendingVips = user.purchases.filter(p => p.status === 'PENDING')
+
+    if (pendingVips.length > 0) {
+      status = 'PENDIENTE'
+    } else if (activeVips.length > 0) {
+      status = 'ACTIVO'
+    }
+
+    const buildNode = (u: any): UserNetworkNode => {
+      const uActiveVips = u.purchases.filter((p: any) => p.status === 'ACTIVE')
+      const uPendingVips = u.purchases.filter((p: any) => p.status === 'PENDING')
+      
+      let uStatus: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE' = 'INACTIVO'
+      if (uPendingVips.length > 0) {
+        uStatus = 'PENDIENTE'
+      } else if (uActiveVips.length > 0) {
+        uStatus = 'ACTIVO'
+      }
+
+      const allVips = [
+        ...uActiveVips.map((p: any) => ({ ...p.vip_package, status: 'ACTIVE', activated_at: p.activated_at })),
+        ...uPendingVips.map((p: any) => ({ ...p.vip_package, status: 'PENDING', activated_at: p.activated_at }))
+      ]
+
+      return {
+        id: u.id,
+        username: u.username,
+        full_name: u.full_name,
+        status: uStatus,
+        vip_packages: allVips,
+        referrals: u.referrals ? u.referrals.map(buildNode) : [],
+      }
+    }
+
+    return NextResponse.json({
+      id: user.id,
+      username: user.username,
+      full_name: user.full_name,
+      status,
+      vip_packages: [
+        ...activeVips.map(p => ({ ...p.vip_package, status: 'ACTIVE', activated_at: p.activated_at })),
+        ...pendingVips.map(p => ({ ...p.vip_package, status: 'PENDING', activated_at: p.activated_at }))
+      ],
+      referrals: user.referrals.map(buildNode),
+    })
   } catch (error) {
     console.error('Network API error:', error)
 
