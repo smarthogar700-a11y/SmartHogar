@@ -172,8 +172,22 @@ export default function WithdrawalsPage() {
         <Card glassEffect>
           <p className="text-xs font-semibold text-red-400 text-center mb-4">
             Las solicitudes deben realizarse únicamente con montos exactos:
-30 Bs · 100 Bs · 200 Bs · 500 Bs · 1.000 Bs · 2.000 Bs · 5.000 Bs
           </p>
+          <div className="flex flex-wrap gap-2 justify-center mb-6">
+            {[30, 100, 200, 500, 1000, 2000, 5000].map((mont) => (
+              <button
+                key={mont}
+                onClick={() => setAmount(mont.toString())}
+                className={`px-3 py-2 text-xs font-semibold rounded border-2 transition-all ${
+                  amount === mont.toString()
+                    ? 'bg-gold text-black border-gold'
+                    : 'bg-transparent text-gold border-gold hover:bg-gold hover:text-black'
+                }`}
+              >
+                {mont === 1000 ? '1.000' : mont === 2000 ? '2.000' : mont === 5000 ? '5.000' : mont}
+              </button>
+            ))}
+          </div>
           <div className="text-center mb-6">
             <p className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
               Saldo disponible
