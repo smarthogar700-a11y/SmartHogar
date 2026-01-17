@@ -42,7 +42,12 @@ export default function ShopPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products')
+      const res = await fetch('/api/products', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      })
       if (res.ok) {
         const data = await res.json()
         setProducts(data.products || [])
