@@ -14,6 +14,7 @@ interface Withdrawal {
   amount_bs: number
   status: string
   created_at: string
+  receipt_url?: string | null
 }
 
 export default function WithdrawalsPage() {
