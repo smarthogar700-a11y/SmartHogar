@@ -1231,19 +1231,6 @@ export default function AdminPage() {
                       Aplica las ganancias diarias a todos los usuarios con VIP activo. Usa el porcentaje actual de cada paquete.
                     </p>
 
-                    {dailyProfitStatus?.already_run && (
-                      <div className="bg-green-500 bg-opacity-10 border border-green-500 border-opacity-30 rounded-lg p-4">
-                        <p className="text-sm text-green-400 font-bold mb-2">
-                          ✅ Ganancias diarias ya actualizadas
-                        </p>
-                        {dailyProfitStatus.next_unlock && (
-                          <p className="text-xs text-text-secondary">
-                            Próxima ejecución disponible: <span className="text-gold font-bold">1:00 AM (Bolivia)</span>
-                          </p>
-                        )}
-                      </div>
-                    )}
-
                     {dailyProfitStatus?.last_run_at && (
                       <div className="text-xs text-text-secondary space-y-1">
                         <p>
@@ -1268,15 +1255,13 @@ export default function AdminPage() {
 
                     <Button
                       variant="primary"
-                      className="w-full"
+                      className="w-full py-4 text-lg"
                       onClick={handleRunDailyProfit}
-                      disabled={processing || dailyProfitStatus?.already_run}
+                      disabled={processing}
                     >
                       {processing
-                        ? 'Procesando...'
-                        : dailyProfitStatus?.already_run
-                          ? '🔒 Bloqueado hasta 1:00 AM (Bolivia)'
-                          : '▶️ Actualizar Ganancias Diarias'}
+                        ? 'Procesando ganancias...'
+                        : '▶️ Actualizar Ganancias Ahora'}
                     </Button>
                   </div>
                 </Card>
@@ -1287,7 +1272,6 @@ export default function AdminPage() {
                     <p>• Solo se procesan usuarios con VIP activo</p>
                     <p>• Cada usuario recibe la ganancia diaria según su paquete VIP</p>
                     <p>• El proceso se ejecuta manualmente por el administrador</p>
-                    <p>• Una vez ejecutado, se bloquea hasta la 1:00 AM (hora Bolivia)</p>
                     <p>• <strong className="text-gold">Procesados:</strong> Usuarios que recibieron ganancias diarias</p>
                     <p>• <strong className="text-blue-400">Sincronizados:</strong> Compras cuya ganancia se actualizó al paquete VIP</p>
                   </div>

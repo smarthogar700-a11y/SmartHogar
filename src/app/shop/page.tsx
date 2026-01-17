@@ -361,9 +361,9 @@ export default function ShopPage() {
             </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 justify-items-center">
             {products.map((product) => (
-              <Card key={product.id} glassEffect className="p-2">
+              <Card key={product.id} glassEffect className="p-2 w-full max-w-[180px]">
                 <div className="space-y-2">
                   {/* Imagen */}
                   <div className="aspect-square bg-dark-card rounded-md overflow-hidden relative group">

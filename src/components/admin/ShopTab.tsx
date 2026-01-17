@@ -417,65 +417,72 @@ export default function ShopTab({ token }: ShopTabProps) {
         ) : (
           products.map((product) => (
             <Card key={product.id} glassEffect>
-              <div className="flex gap-4 items-start">
-                <div className="w-24 h-24 bg-dark-card rounded-lg overflow-hidden flex-shrink-0">
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        'https://via.placeholder.com/100x100?text=Error'
-                    }}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-3 mb-2">
-                    <h3 className="font-bold text-text-primary flex-1">
+              <div className="space-y-3">
+                {/* Imagen y info básica */}
+                <div className="flex gap-3 items-start">
+                  <div className="w-20 h-20 bg-dark-card rounded-lg overflow-hidden flex-shrink-0">
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'https://via.placeholder.com/100x100?text=Error'
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-text-primary text-sm">
                       {product.name}
                     </h3>
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${product.is_active
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                        : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        }`}
-                    >
-                      {product.is_active ? '✓ Activo' : '✗ Inactivo'}
-                    </span>
+                    {product.description && (
+                      <p className="text-xs text-text-secondary line-clamp-2 mt-1">
+                        {product.description}
+                      </p>
+                    )}
+                    <div className="text-sm mt-2">
+                      <span className="text-gold font-bold">
+                        $ {product.price_bs.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
-                  {product.description && (
-                    <p className="text-xs text-text-secondary line-clamp-2 mb-2">
-                      {product.description}
-                    </p>
-                  )}
-                  <div className="text-sm mb-3">
-                    <span className="text-gold font-bold">
-                      $ {product.price_bs.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-xs py-2"
-                      onClick={() => openEditForm(product)}
-                    >
-                      ✏️ Editar
-                    </Button>
-                    <Button
-                      variant={product.is_active ? 'secondary' : 'primary'}
-                      className="flex-1 text-xs py-2"
-                      onClick={() => toggleProductStatus(product)}
-                    >
-                      {product.is_active ? '🔒 Desactivar' : '✅ Activar'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="text-xs py-2 px-3 text-red-400 border-red-500 hover:bg-red-500/10"
-                      onClick={() => deleteProduct(product.id)}
-                    >
-                      🗑️
-                    </Button>
-                  </div>
+                </div>
+
+                {/* Estado - fila separada */}
+                <div className="flex justify-center">
+                  <span
+                    className={`text-xs px-4 py-1.5 rounded-full ${product.is_active
+                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                      : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                      }`}
+                  >
+                    {product.is_active ? '✓ Activo' : '✗ Inactivo'}
+                  </span>
+                </div>
+
+                {/* Botones - fila separada, grid para móvil */}
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    className="text-xs py-2"
+                    onClick={() => openEditForm(product)}
+                  >
+                    ✏️ Editar
+                  </Button>
+                  <Button
+                    variant={product.is_active ? 'secondary' : 'primary'}
+                    className="text-xs py-2"
+                    onClick={() => toggleProductStatus(product)}
+                  >
+                    {product.is_active ? '🔒' : '✅'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="text-xs py-2 text-red-400 border-red-500 hover:bg-red-500/10"
+                    onClick={() => deleteProduct(product.id)}
+                  >
+                    🗑️ Borrar
+                  </Button>
                 </div>
               </div>
             </Card>

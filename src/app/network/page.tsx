@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import BottomNav from '@/components/ui/BottomNav'
-import { useToast } from '@/components/ui/Toast'
 import ScreenshotProtection from '@/components/ui/ScreenshotProtection'
 
 interface ReferralUser {

@@ -11,57 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const now = new Date()
 
-    // Calcular la última 1 AM y la próxima 1 AM hora Bolivia (UTC-4)
-    const boliviaOffset = -4 * 60 // -4 horas en minutos
-    const nowBolivia = new Date(now.getTime() + boliviaOffset * 60 * 1000)
-
-    // Obtener la fecha actual en Bolivia
-    const boliviaYear = nowBolivia.getUTCFullYear()
-    const boliviaMonth = nowBolivia.getUTCMonth()
-    const boliviaDate = nowBolivia.getUTCDate()
-    const boliviaHour = nowBolivia.getUTCHours()
-
-    // Calcular la última 1 AM que ya pasó
-    let lastOneAM: Date
-    if (boliviaHour >= 1) {
-      // Ya pasó la 1 AM de hoy, entonces la última fue hoy a la 1 AM
-      lastOneAM = new Date(Date.UTC(boliviaYear, boliviaMonth, boliviaDate, 1, 0, 0, 0))
-    } else {
-      // Aún no llega la 1 AM de hoy, entonces la última fue ayer a la 1 AM
-      lastOneAM = new Date(Date.UTC(boliviaYear, boliviaMonth, boliviaDate - 1, 1, 0, 0, 0))
-    }
-
-    // Calcular la próxima 1 AM
-    let nextUnlock: Date
-    if (boliviaHour >= 1) {
-      // Ya pasó la 1 AM de hoy, siguiente es mañana
-      nextUnlock = new Date(Date.UTC(boliviaYear, boliviaMonth, boliviaDate + 1, 1, 0, 0, 0))
-    } else {
-      // Aún no llega la 1 AM de hoy, la próxima es hoy a la 1 AM
-      nextUnlock = new Date(Date.UTC(boliviaYear, boliviaMonth, boliviaDate, 1, 0, 0, 0))
-    }
-
-    // Convertir de hora Bolivia (UTC) a hora del servidor (restar el offset)
-    lastOneAM = new Date(lastOneAM.getTime() - boliviaOffset * 60 * 1000)
-    nextUnlock = new Date(nextUnlock.getTime() - boliviaOffset * 60 * 1000)
-
-    const lastRun = await prisma.dailyProfitRun.findUnique({
-      where: { id: 1 },
-    })
-
-    // Verificar si ya se ejecutó después de la última 1 AM Bolivia
-    // Si lastRun existe y es posterior a la última 1 AM, entonces ya se ejecutó hoy
-    if (lastRun && lastRun.last_run_at >= lastOneAM) {
-      return NextResponse.json({
-        message: `Ganancias diarias ya actualizadas. Próxima ejecución disponible a la 1:00 AM (Bolivia)`,
-        processed: 0,
-        synced: 0,
-        last_run_at: lastRun.last_run_at,
-        next_unlock: nextUnlock,
-        already_run: true,
-      })
-    }
-
+    // Obtener todas las compras activas con su paquete VIP
     const activePurchases = await prisma.purchase.findMany({
       where: {
         status: 'ACTIVE',
@@ -70,11 +20,18 @@ export async function POST(req: NextRequest) {
         vip_package: {
           select: {
             daily_profit_bs: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            username: true,
           },
         },
       },
     })
 
+    // Sincronizar las ganancias con el porcentaje actual del paquete VIP
     let syncedCount = 0
     for (const purchase of activePurchases) {
       const currentProfit = purchase.vip_package?.daily_profit_bs ?? purchase.daily_profit_bs
@@ -87,27 +44,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const eligiblePurchases = activePurchases.filter((purchase) => {
-      if (!purchase.last_profit_at) return true
-      // Verificar si ya pasaron 24 horas desde el último pago
-      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-      return purchase.last_profit_at <= twentyFourHoursAgo
-    })
-
+    // Procesar ganancias para todas las compras activas
     let processedCount = 0
+    const processedUsers: string[] = []
 
-    for (const purchase of eligiblePurchases) {
+    for (const purchase of activePurchases) {
       const effectiveProfit = purchase.vip_package?.daily_profit_bs ?? purchase.daily_profit_bs
+
       await prisma.$transaction(async (tx) => {
+        // Crear registro en wallet
         await tx.walletLedger.create({
           data: {
             user_id: purchase.user_id,
             type: 'DAILY_PROFIT',
             amount_bs: effectiveProfit,
-            description: `Ganancia diaria ${purchase.vip_package_id}`,
+            description: `Ganancia diaria - ${purchase.vip_package?.name || 'VIP'}`,
           },
         })
 
+        // Actualizar la compra
         await tx.purchase.update({
           where: { id: purchase.id },
           data: {
@@ -118,8 +73,12 @@ export async function POST(req: NextRequest) {
       })
 
       processedCount++
+      if (purchase.user?.username) {
+        processedUsers.push(purchase.user.username)
+      }
     }
 
+    // Registrar la ejecución
     await prisma.dailyProfitRun.upsert({
       where: { id: 1 },
       update: { last_run_at: now },
@@ -127,7 +86,7 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({
-      message: 'Ganancias diarias procesadas',
+      message: 'Ganancias diarias procesadas exitosamente',
       processed: processedCount,
       synced: syncedCount,
       last_run_at: now,
@@ -149,48 +108,19 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const now = new Date()
-
-    // Calcular la última 1 AM y la próxima 1 AM hora Bolivia (UTC-4)
-    const boliviaOffset = -4 * 60 // -4 horas en minutos
-    const nowBolivia = new Date(now.getTime() + boliviaOffset * 60 * 1000)
-
-    // Obtener la fecha actual en Bolivia
-    const boliviaYear = nowBolivia.getUTCFullYear()
-    const boliviaMonth = nowBolivia.getUTCMonth()
-    const boliviaDate = nowBolivia.getUTCDate()
-    const boliviaHour = nowBolivia.getUTCHours()
-
-    // Calcular la última 1 AM que ya pasó
-    let lastOneAM: Date
-    if (boliviaHour >= 1) {
-      lastOneAM = new Date(Date.UTC(boliviaYear, boliviaMonth, boliviaDate, 1, 0, 0, 0))
-    } else {
-      lastOneAM = new Date(Date.UTC(boliviaYear, boliviaMonth, boliviaDate - 1, 1, 0, 0, 0))
-    }
-
-    // Calcular próxima 1 AM
-    let nextUnlock: Date
-    if (boliviaHour >= 1) {
-      nextUnlock = new Date(Date.UTC(boliviaYear, boliviaMonth, boliviaDate + 1, 1, 0, 0, 0))
-    } else {
-      nextUnlock = new Date(Date.UTC(boliviaYear, boliviaMonth, boliviaDate, 1, 0, 0, 0))
-    }
-
-    // Convertir de hora Bolivia (UTC) a hora del servidor
-    lastOneAM = new Date(lastOneAM.getTime() - boliviaOffset * 60 * 1000)
-    nextUnlock = new Date(nextUnlock.getTime() - boliviaOffset * 60 * 1000)
-
     const lastRun = await prisma.dailyProfitRun.findUnique({
       where: { id: 1 },
     })
 
-    // Ya se ejecutó si lastRun existe y es posterior a la última 1 AM
-    const alreadyRun = lastRun ? lastRun.last_run_at >= lastOneAM : false
+    // Contar compras activas para mostrar info
+    const activeCount = await prisma.purchase.count({
+      where: { status: 'ACTIVE' },
+    })
+
     return NextResponse.json({
       last_run_at: lastRun?.last_run_at || null,
-      next_unlock: nextUnlock,
-      already_run: alreadyRun,
+      already_run: false, // Siempre permitir ejecutar
+      active_purchases: activeCount,
     })
   } catch (error) {
     console.error('Run daily profit status error:', error)
