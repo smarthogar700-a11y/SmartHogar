@@ -137,6 +137,7 @@ model Withdrawal {
   payout_method    String           @default("")
   phone_number     String           @default("")
   status           WithdrawalStatus @default(PENDING)
+  receipt_url      String?
 
   processed_at     DateTime?
 
@@ -185,6 +186,22 @@ model Announcement {
   @@index([created_at])
 }
 
+model EffortBonus {
+  id                      Int      @id @default(autoincrement())
+  title                   String
+  target_kpi              String
+  level_description       String
+  amount_bs               Float
+  requirement_description String
+  sort_order              Int      @default(0)
+  is_active               Boolean  @default(true) 
+
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  
+  @@index([sort_order])
+}
+
 model PasswordReset {
   id         String   @id @default(cuid())
   user_id    String
@@ -203,4 +220,26 @@ model PasswordReset {
 model DailyProfitRun {
   id          Int      @id @default(1)
   last_run_at DateTime
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price_bs    Float
+  image_url   String
+  is_active   Boolean  @default(true)
+  stock       Int      @default(0)
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([is_active])
+}
+
+model GlobalConfig {
+  id              Int      @id @default(1)
+  whatsapp_number String   @default("")
+
+  updated_at      DateTime @updatedAt
 }

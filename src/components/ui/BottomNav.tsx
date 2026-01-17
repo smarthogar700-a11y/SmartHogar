@@ -9,14 +9,15 @@ export default function BottomNav() {
   const navItems = [
     { href: '/home', label: 'Home', icon: '🏠' },
     { href: '/paks', label: 'Paks', icon: '💎' },
+    { href: '/my-purchases', label: 'Mis VIPs', icon: '👑' },
+    { href: '/tables', label: 'Tablas', icon: '📊' },
+    { href: '/shop', label: 'Tienda', icon: '🛒' },
     { href: '/network', label: 'Red', icon: '🌐' },
-    { href: '/tabla', label: 'Tabla', icon: '📊' },
     { href: '/withdrawals', label: 'Retiros', icon: '💰' },
-    { href: '/my-purchases', label: 'Compras', icon: '📦' },
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-dark-card border-t border-gold border-opacity-20 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#021024]/95 backdrop-blur-md z-50 transition-colors duration-300 rounded-t-2xl shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
       <div className="flex justify-around items-center h-16 max-w-screen-xl mx-auto px-4">
         {navItems.map((item) => {
           const isActive = pathname === item.href
@@ -24,14 +25,14 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-                isActive
-                  ? 'text-gold'
-                  : 'text-text-secondary hover:text-gold'
-              }`}
+              className={`relative flex flex-col items-center justify-center flex-1 h-full transition-all duration-300 ${isActive
+                ? 'text-[#C1E8FF]'
+                : 'text-[#5483B3]/60 hover:text-[#C1E8FF]'
+                }`}
             >
-              <span className="text-2xl mb-1">{item.icon}</span>
-              <span className="text-xs font-medium">{item.label}</span>
+              {/* Indicator removed */}
+              <span className={`text-2xl mb-1 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(193,232,255,0.5)]' : ''} transition-transform`}>{item.icon}</span>
+              <span className="text-[10px] font-medium tracking-wide uppercase">{item.label}</span>
             </Link>
           )
         })}

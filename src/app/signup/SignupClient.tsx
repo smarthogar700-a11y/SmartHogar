@@ -13,8 +13,10 @@ export default function SignupClient({
   initialSponsorCode?: string
 }) {
   const router = useRouter()
+  // Establecer 'carlosmendoza' como patrocinador por defecto si no viene de URL referida
+  const defaultSponsorCode = initialSponsorCode || 'carlosmendoza'
   const [formData, setFormData] = useState({
-    sponsor_code: initialSponsorCode,
+    sponsor_code: defaultSponsorCode,
     full_name: '',
     username: '',
     email: '',
@@ -24,7 +26,8 @@ export default function SignupClient({
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { showToast } = useToast()
-  const lockSponsor = Boolean(initialSponsorCode)
+  // Siempre bloquear el campo de patrocinador
+  const lockSponsor = true
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,7 +91,8 @@ export default function SignupClient({
             value={formData.sponsor_code}
             onChange={(e) => setFormData({ ...formData, sponsor_code: e.target.value })}
             placeholder="Código de quien te invitó"
-            readOnly={lockSponsor}
+            readOnly={true}
+            disabled={true}
           />
 
           <Input

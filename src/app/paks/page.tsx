@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import BottomNav from '@/components/ui/BottomNav'
 import Carousel from '@/components/ui/Carousel'
+import ScreenshotProtection from '@/components/ui/ScreenshotProtection'
 
 interface VipPackage {
   id: number
@@ -19,7 +20,7 @@ interface VipPackage {
 export default function PaksPage() {
   const router = useRouter()
   const [packages, setPackages] = useState<VipPackage[]>([])
-  const [purchasedPackageIds, setPurchasedPackageIds] = useState<number[]>([])
+  const [purchasedPackages, setPurchasedPackages] = useState<{ id: number; status: string }[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,10 +40,13 @@ export default function PaksPage() {
         })
         if (purchasesRes.ok) {
           const purchases = await purchasesRes.json()
-          const ids = purchases
-            .map((purchase: { vip_package_id: number }) => purchase.vip_package_id)
-            .filter((id: number) => typeof id === 'number')
-          setPurchasedPackageIds(ids)
+          const paks = purchases
+            .map((purchase: { vip_package_id: number; status: string }) => ({
+              id: purchase.vip_package_id,
+              status: purchase.status,
+            }))
+            .filter((p: { id: number }) => typeof p.id === 'number')
+          setPurchasedPackages(paks)
         }
       }
 
@@ -123,6 +127,7 @@ export default function PaksPage() {
 
   return (
     <div className="min-h-screen pb-20">
+      <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
 
         <div className="reveal-float">
@@ -137,7 +142,7 @@ export default function PaksPage() {
         </div>
 
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gold gold-glow">Paquetes VIP</h1>
+          <h1 className="text-4xl font-bold text-gold">Paquetes VIP</h1>
           <p className="mt-2 text-text-secondary uppercase tracking-wider text-sm font-light">
             Elige tu inversión
           </p>
@@ -145,7 +150,8 @@ export default function PaksPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {packages.map((pkg) => {
-            const isPurchased = purchasedPackageIds.includes(pkg.id)
+            const purchasedData = purchasedPackages.find(p => p.id === pkg.id)
+            const isPurchased = !!purchasedData
             const isDisabled = !pkg.is_enabled || isPurchased
             const requirementText =
               pkg.level === 6
@@ -154,70 +160,74 @@ export default function PaksPage() {
                   ? 'Requisitos para activar este pak: 30 activos primer, segundo y tercer nivel'
                   : ''
             return (
-            <Card key={pkg.id} glassEffect>
-              <div className="space-y-4">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold text-gold">{pkg.name}</h2>
-                  <p className="text-sm text-text-secondary uppercase tracking-wider font-light mt-1">
-                    Nivel {pkg.level}
-                  </p>
-                  <p className="text-xs text-text-secondary mt-2">
-                    {getPackageMotivation(pkg.level)}
-                  </p>
-                  <p className="text-xs text-gold mt-1">
-                    {getPackageHook(pkg.level)}
-                  </p>
-                  {requirementText ? (
-                    <p className="text-xs text-red-500 mt-2">
-                      {requirementText}
+              <Card key={pkg.id} glassEffect>
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold text-gold">{pkg.name}</h2>
+                    <p className="text-sm text-text-secondary uppercase tracking-wider font-light mt-1">
+                      Nivel {pkg.level}
                     </p>
-                  ) : null}
-                </div>
+                    <p className="text-xs text-text-secondary mt-2">
+                      {getPackageMotivation(pkg.level)}
+                    </p>
+                    <p className="text-xs text-gold mt-1">
+                      {getPackageHook(pkg.level)}
+                    </p>
+                    {requirementText ? (
+                      <p className="text-xs text-red-500 mt-2">
+                        {requirementText}
+                      </p>
+                    ) : null}
+                  </div>
 
-                <div className="border-t border-b border-gold border-opacity-20 py-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Inversión:</span>
-                    <span className="font-bold text-text-primary">
-                      Bs {pkg.investment_bs}
-                    </span>
+                  <div className="border-t border-b border-gold/20 py-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-text-secondary">Inversión:</span>
+                      <span className="font-bold text-text-primary">
+                        Bs {pkg.investment_bs}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-secondary">Ganancia diaria:</span>
+                      <span className="font-bold text-gold">
+                        Bs {pkg.daily_profit_bs}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-secondary">Porcentaje:</span>
+                      <span className="font-bold text-gold">
+                        {calculatePercentage(pkg.daily_profit_bs, pkg.investment_bs)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-secondary">Ganancia mensual:</span>
+                      <span className="font-bold text-gold">
+                        Bs {calculateMonthly(pkg.daily_profit_bs)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Ganancia diaria:</span>
-                    <span className="font-bold text-gold">
-                      Bs {pkg.daily_profit_bs}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Porcentaje:</span>
-                    <span className="font-bold text-gold-bright">
-                      {calculatePercentage(pkg.daily_profit_bs, pkg.investment_bs)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Ganancia mensual:</span>
-                    <span className="font-bold text-gold-bright">
-                      Bs {calculateMonthly(pkg.daily_profit_bs)}
-                    </span>
+
+                  <div className="relative">
+
+                    <Button
+                      variant="primary"
+                      className="w-full"
+                      disabled={isDisabled}
+                      onClick={() => router.push(`/paks/${pkg.id}/buy`)}
+                    >
+                      {isPurchased ? 'Comprado' : pkg.is_enabled ? 'Comprar' : 'No disponible'}
+                    </Button>
                   </div>
                 </div>
-
-                <Button
-                  variant="primary"
-                  className="w-full"
-                  disabled={isDisabled}
-                  onClick={() => router.push(`/paks/${pkg.id}/buy`)}
-                >
-                  {isPurchased ? 'Comprado' : pkg.is_enabled ? 'Comprar' : 'No disponible'}
-                </Button>
-              </div>
-            </Card>
-          )})}
+              </Card>
+            )
+          })}
         </div>
 
       </div>
 
       <p className="mt-6 text-xs text-text-secondary text-center">
-        © 2026 ULTRON. Todos los derechos reservados por ULTRON.
+        © 2026 SmartHogar. Todos los derechos reservados por SmartHogar.
       </p>
 
       <BottomNav />

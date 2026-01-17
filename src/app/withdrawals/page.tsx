@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import BottomNav from '@/components/ui/BottomNav'
 import { useToast } from '@/components/ui/Toast'
+import ScreenshotProtection from '@/components/ui/ScreenshotProtection'
 
 interface Withdrawal {
   id: string
@@ -26,6 +27,7 @@ export default function WithdrawalsPage() {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [selectedReceiptImage, setSelectedReceiptImage] = useState<string | null>(null)
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -63,8 +65,8 @@ export default function WithdrawalsPage() {
     setError('')
 
     const amountNum = parseFloat(amount)
-    if (isNaN(amountNum) || amountNum <= 0) {
-      setError('Monto inválido')
+    if (isNaN(amountNum) || amountNum < 10) {
+      setError('El monto mínimo de retiro es Bs 10')
       return
     }
 
@@ -78,6 +80,9 @@ export default function WithdrawalsPage() {
       return
     }
 
+    // ... (rest of function)
+
+    // And later in the JSX:
     setLoading(true)
 
     try {
@@ -154,6 +159,7 @@ export default function WithdrawalsPage() {
 
   return (
     <div className="min-h-screen pb-20">
+      <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gold gold-glow">Retiros</h1>
@@ -161,7 +167,7 @@ export default function WithdrawalsPage() {
             Solicita tu retiro
           </p>
           <p className="mt-2 text-[10px] text-text-secondary">
-            Retiros desde Bs 30. Pagos de lunes a viernes. Se acreditan de 24 a 72 horas
+            Retiros desde Bs 10. Pagos de lunes a viernes. Se acreditan de 24 a 72 horas
             despues de la solicitud.
           </p>
           <p className="mt-2 text-[10px] text-text-secondary">
@@ -174,17 +180,16 @@ export default function WithdrawalsPage() {
             Las solicitudes deben realizarse únicamente con montos exactos:
           </p>
           <div className="flex flex-wrap gap-2 justify-center mb-6">
-            {[30, 100, 200, 500, 1000, 2000, 5000].map((mont) => (
+            {[10, 50, 100, 200, 500, 1000].map((mont) => (
               <button
                 key={mont}
                 onClick={() => setAmount(mont.toString())}
-                className={`px-3 py-2 text-xs font-semibold rounded border-2 transition-all ${
-                  amount === mont.toString()
-                    ? 'bg-gold text-black border-gold'
-                    : 'bg-transparent text-gold border-gold hover:bg-gold hover:text-black'
-                }`}
+                className={`px-3 py-2 text-xs font-semibold rounded border-2 transition-all ${amount === mont.toString()
+                  ? 'bg-gold text-black border-gold'
+                  : 'bg-transparent text-gold border-gold hover:bg-gold hover:text-black'
+                  }`}
               >
-                {mont === 1000 ? '1.000' : mont === 2000 ? '2.000' : mont === 5000 ? '5.000' : mont}
+                {mont === 1000 ? '1.000' : mont}
               </button>
             ))}
           </div>
@@ -228,14 +233,21 @@ export default function WithdrawalsPage() {
               required
             />
 
-            <Input
-              label="Modo a retirar"
-              type="text"
-              value={payoutMethod}
-              onChange={(e) => setPayoutMethod(e.target.value)}
-              placeholder="Ej: Transferencia bancaria"
-              required
-            />
+            <div className="space-y-1">
+              <label className="text-xs text-text-secondary font-medium ml-1">Método de retiro</label>
+              <select
+                value={payoutMethod}
+                onChange={(e) => setPayoutMethod(e.target.value)}
+                className="w-full bg-dark-bg border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold/50 transition-colors appearance-none"
+                required
+              >
+                <option value="" disabled>Selecciona un método</option>
+                <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                <option value="QR Simple">QR Simple</option>
+                <option value="Tigo Money">Tigo Money</option>
+                <option value="USDT">USDT (Cripto)</option>
+              </select>
+            </div>
 
             <Input
               label="Número de teléfono"
@@ -269,24 +281,78 @@ export default function WithdrawalsPage() {
           ) : (
             withdrawals.map((w) => (
               <Card key={w.id}>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-text-primary">
-                      Bs {w.amount_bs.toFixed(2)}
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                      {new Date(w.created_at).toLocaleDateString('es-ES')}
-                    </p>
+                <div className="flex gap-3">
+                  {/* Miniatura del comprobante */}
+                  {w.status === 'PAID' && w.receipt_url && (
+                    <div
+                      onClick={() => setSelectedReceiptImage(w.receipt_url!)}
+                      className="flex-shrink-0 cursor-pointer"
+                    >
+                      <img
+                        src={w.receipt_url}
+                        alt="Comprobante"
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
+                        className="w-20 h-20 object-cover rounded-lg border-2 border-gold/30 hover:border-gold transition-colors select-none"
+                      />
+                    </div>
+                  )}
+
+                  {/* Información del retiro */}
+                  <div className="flex-1 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-bold text-text-primary">
+                          Bs {w.amount_bs.toFixed(2)}
+                        </p>
+                        <p className="text-sm text-text-secondary">
+                          {new Date(w.created_at).toLocaleDateString('es-ES')}
+                        </p>
+                      </div>
+                      <span className={`font-medium ${getStatusColor(w.status)}`}>
+                        {getStatusText(w.status)}
+                      </span>
+                    </div>
+                    {w.status === 'PAID' && w.receipt_url && (
+                      <p className="text-xs text-green-400">
+                        ✓ Comprobante adjunto
+                      </p>
+                    )}
                   </div>
-                  <span className={`font-medium ${getStatusColor(w.status)}`}>
-                    {getStatusText(w.status)}
-                  </span>
                 </div>
               </Card>
             ))
           )}
         </div>
       </div>
+
+      {/* Modal de imagen en grande */}
+      {selectedReceiptImage && (
+        <div
+          className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedReceiptImage(null)}
+        >
+          <div className="relative max-w-4xl w-full">
+            <button
+              onClick={() => setSelectedReceiptImage(null)}
+              className="absolute -top-12 right-0 text-white text-4xl hover:text-gold transition-colors"
+            >
+              ×
+            </button>
+            <img
+              src={selectedReceiptImage}
+              alt="Comprobante de Pago"
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+              className="w-full h-auto rounded-lg select-none"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <p className="text-center text-sm text-text-secondary mt-4">
+              Comprobante de Pago
+            </p>
+          </div>
+        </div>
+      )}
 
       <p className="mt-6 text-xs text-text-secondary text-center">
         © 2026 ULTRON. Todos los derechos reservados por ULTRON.

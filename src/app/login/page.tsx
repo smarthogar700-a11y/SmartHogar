@@ -47,7 +47,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gold gold-glow">Bienvenido</h1>
+          <h1 className="text-4xl font-bold text-gradient-gold-blue">Bienvenido</h1>
           <p className="mt-2 text-text-secondary uppercase tracking-wider text-sm font-light">
             Inicia sesión en tu cuenta
           </p>
@@ -77,7 +77,7 @@ export default function LoginPage() {
           )}
 
           <div className="text-right">
-            <Link href="/forgot-password" className="text-sm text-gold hover:text-gold-bright">
+            <Link href="/forgot-password" className="text-sm text-blue-bright hover:text-gold">
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
@@ -88,14 +88,14 @@ export default function LoginPage() {
 
           <p className="text-center text-text-secondary">
             ¿No tienes cuenta?{' '}
-            <Link href="/signup" className="text-gold hover:text-gold-bright">
+            <Link href="/signup" className="text-blue-bright hover:text-gold">
               Regístrate
             </Link>
           </p>
         </form>
 
         <p className="mt-8 text-xs text-text-secondary text-center">
-          © 2026 ULTRON. Todos los derechos reservados por ULTRON.
+          © 2026 SmartHogar. Todos los derechos reservados por SmartHogar.
         </p>
       </div>
     </div>

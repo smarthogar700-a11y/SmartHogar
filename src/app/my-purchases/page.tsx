@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import BottomNav from '@/components/ui/BottomNav'
+import { useToast } from '@/components/ui/Toast'
+import ScreenshotProtection from '@/components/ui/ScreenshotProtection'
 
 interface Purchase {
   id: string
@@ -91,11 +93,12 @@ export default function MyPurchasesPage() {
 
   return (
     <div className="min-h-screen pb-20">
+      <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gold gold-glow">Mis Compras</h1>
+          <h1 className="text-4xl font-bold text-gradient-gold-blue">Mis VIPs</h1>
           <p className="mt-2 text-text-secondary uppercase tracking-wider text-sm font-light">
-            Historial de paquetes VIP
+            Paquetes VIP adquiridos
           </p>
         </div>
 

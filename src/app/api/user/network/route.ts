@@ -28,141 +28,111 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Query única - traer usuario con compras y referidos directos
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    // 1. Fetch ALL users and purchases (optimized for tree building)
+    const allUsers = await prisma.user.findMany({
       select: {
         id: true,
         username: true,
         full_name: true,
-        purchases: {
-          select: {
-            status: true,
-            vip_package: {
-              select: { name: true, level: true },
-            },
-          },
-        },
-        referrals: {
-          select: {
-            id: true,
-            username: true,
-            full_name: true,
-            purchases: {
-              select: {
-                status: true,
-                vip_package: {
-                  select: { name: true, level: true },
-                },
-              },
-            },
-            referrals: {
-              select: {
-                id: true,
-                username: true,
-                full_name: true,
-                purchases: {
-                  select: {
-                    status: true,
-                    vip_package: {
-                      select: { name: true, level: true },
-                    },
-                  },
-                },
-                referrals: {
-                  select: {
-                    id: true,
-                    username: true,
-                    full_name: true,
-                    purchases: {
-                      select: {
-                        status: true,
-                        vip_package: {
-                          select: { name: true, level: true },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+        sponsor_id: true,
       },
     })
 
-    if (!user) {
+    const allPurchases = await prisma.purchase.findMany({
+      where: {
+        status: { in: ['ACTIVE', 'PENDING'] }
+      },
+      select: {
+        user_id: true,
+        status: true,
+        vip_package: {
+          select: { name: true, level: true }
+        }
+      }
+    })
+
+    // 2. Index data for fast lookup
+    const purchasesByUser = new Map<string, typeof allPurchases>()
+    for (const p of allPurchases) {
+      if (!purchasesByUser.has(p.user_id)) {
+        purchasesByUser.set(p.user_id, [])
+      }
+      purchasesByUser.get(p.user_id)!.push(p)
+    }
+
+    const usersById = new Map<string, typeof allUsers[0]>()
+    for (const u of allUsers) {
+      usersById.set(u.id, u)
+    }
+
+    // 3. Helper to determine status and packages
+    const getUserDetails = (uId: string) => {
+      const purchases = purchasesByUser.get(uId) || []
+      const activeVips = purchases.filter(p => p.status === 'ACTIVE')
+      const pendingVips = purchases.filter(p => p.status === 'PENDING')
+
+      let status: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE' = 'INACTIVO'
+      if (pendingVips.length > 0) status = 'PENDIENTE'
+      else if (activeVips.length > 0) status = 'ACTIVO'
+
+      const uniquePackages = new Map()
+      purchases.forEach(p => {
+        if (!uniquePackages.has(p.vip_package.name)) {
+          uniquePackages.set(p.vip_package.name, { ...p.vip_package, status: p.status })
+        }
+      })
+
+      return { status, vip_packages: Array.from(uniquePackages.values()) }
+    }
+
+    // 4. Recursive Tree Builder
+    const buildTree = (currentId: string, level: number = 0): UserNetworkNode | null => {
+      // Safety break for deep networks
+      if (level > 10) return null
+
+      const currentUser = usersById.get(currentId)
+      if (!currentUser) return null
+
+      const details = getUserDetails(currentId)
+
+      // Find direct children
+      const children = allUsers
+        .filter(u => u.sponsor_id === currentId)
+        .map(child => buildTree(child.id, level + 1))
+        .filter((node): node is UserNetworkNode => node !== null)
+
+      return {
+        id: currentUser.id,
+        username: currentUser.username,
+        full_name: currentUser.full_name || 'Usuario',
+        status: details.status,
+        vip_packages: details.vip_packages as any, // Cast to match interface perfectly
+        referrals: children
+      }
+    }
+
+    // 5. Build the tree starting from the current user
+    const networkTree = buildTree(userId, 0)
+
+    if (!networkTree) {
       return NextResponse.json({
         id: userId,
         username: 'unknown',
         full_name: 'Usuario',
-        status: 'INACTIVO' as const,
+        status: 'INACTIVO',
         vip_packages: [],
         referrals: [],
       })
     }
 
-    // Procesar usuario actual
-    let status: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE' = 'INACTIVO'
-    const activeVips = user.purchases.filter(p => p.status === 'ACTIVE')
-    const pendingVips = user.purchases.filter(p => p.status === 'PENDING')
+    // Return the root node directly as the frontend expects 'data' to be the user object
+    return NextResponse.json(networkTree)
 
-    if (pendingVips.length > 0) {
-      status = 'PENDIENTE'
-    } else if (activeVips.length > 0) {
-      status = 'ACTIVO'
-    }
-
-    const buildNode = (u: any): UserNetworkNode => {
-      const uActiveVips = u.purchases.filter((p: any) => p.status === 'ACTIVE')
-      const uPendingVips = u.purchases.filter((p: any) => p.status === 'PENDING')
-      
-      let uStatus: 'ACTIVO' | 'INACTIVO' | 'PENDIENTE' = 'INACTIVO'
-      if (uPendingVips.length > 0) {
-        uStatus = 'PENDIENTE'
-      } else if (uActiveVips.length > 0) {
-        uStatus = 'ACTIVO'
-      }
-
-      const allVips = [
-        ...uActiveVips.map((p: any) => ({ ...p.vip_package, status: 'ACTIVE' })),
-        ...uPendingVips.map((p: any) => ({ ...p.vip_package, status: 'PENDING' }))
-      ]
-
-      return {
-        id: u.id,
-        username: u.username,
-        full_name: u.full_name,
-        status: uStatus,
-        vip_packages: allVips,
-        referrals: u.referrals ? u.referrals.map(buildNode) : [],
-      }
-    }
-
-    return NextResponse.json({
-      id: user.id,
-      username: user.username,
-      full_name: user.full_name,
-      status,
-      vip_packages: [
-        ...activeVips.map(p => ({ ...p.vip_package, status: 'ACTIVE' })),
-        ...pendingVips.map(p => ({ ...p.vip_package, status: 'PENDING' }))
-      ],
-      referrals: user.referrals.map(buildNode),
-    })
   } catch (error) {
     console.error('Network API error:', error)
-
     return NextResponse.json(
-      {
-        id: userId,
-        username: 'error',
-        full_name: 'Error al cargar',
-        status: 'INACTIVO' as const,
-        vip_packages: [],
-        referrals: [],
-      },
-      { status: 200 }
+      { error: 'Error al cargar red de referidos' },
+      { status: 500 }
     )
   }
 }

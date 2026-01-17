@@ -12,6 +12,9 @@ export async function POST(
   }
 
   try {
+    const body = await req.json().catch(() => ({}))
+    const { receipt_url } = body
+
     const withdrawal = await prisma.withdrawal.findUnique({
       where: { id: params.id },
     })
@@ -35,6 +38,7 @@ export async function POST(
       data: {
         status: 'PAID',
         processed_at: new Date(),
+        receipt_url: receipt_url || null,
       },
     })
 

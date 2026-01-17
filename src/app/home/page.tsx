@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import Carousel from '@/components/ui/Carousel'
 import BottomNav from '@/components/ui/BottomNav'
 import { useToast } from '@/components/ui/Toast'
+import ScreenshotProtection from '@/components/ui/ScreenshotProtection'
 
 interface DashboardData {
   user: {
@@ -42,6 +43,20 @@ interface DashboardData {
     id: number
     title: string
     body: string
+    created_at: string
+  }[]
+  effort_bonuses: {
+    id: number
+    title: string
+    target_kpi: string
+    level_description: string
+    amount_bs: number
+    requirement_description: string
+  }[]
+  latest_users: {
+    id: string
+    username: string
+    full_name: string
     created_at: string
   }[]
 }
@@ -143,13 +158,7 @@ export default function HomePage() {
     showToast(ok ? 'Link copiado' : 'No se pudo copiar el link', ok ? 'success' : 'error')
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gold text-xl">Cargando...</p>
-      </div>
-    )
-  }
+  if (loading) return <div className="p-8 text-center text-gold animate-pulse">Cargando datos...</div>
 
   if (!data) {
     return (
@@ -180,12 +189,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen pb-20">
+      <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-dark-bg font-bold text-xl">
-              {data.user.username[0].toUpperCase()}
+              {data.user.username?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div>
               <p className="font-medium text-text-primary">{data.user.full_name}</p>
@@ -194,7 +204,7 @@ export default function HomePage() {
           </div>
           <button
             onClick={handleLogout}
-            className="text-gold hover:text-gold-bright transition-colors"
+            className="text-blue-bright hover:text-gold transition-colors"
           >
             Salir
           </button>
@@ -229,8 +239,8 @@ export default function HomePage() {
                 </div>
               </Card>
             </div>
-        </div>
-      )}
+          </div>
+        )}
 
         {/* User Code */}
         <Card glassEffect>
@@ -243,7 +253,7 @@ export default function HomePage() {
               <p className="text-xs text-text-secondary uppercase tracking-wider font-light mb-2">
                 Link de referido
               </p>
-              <div className="bg-dark-card border border-gold border-opacity-20 rounded-btn px-3 py-2 text-xs text-text-secondary break-all">
+              <div className="bg-dark-card border border-blue-bright/20 rounded-btn px-3 py-2 text-xs text-text-secondary break-all">
                 {referralLink}
               </div>
               <Button variant="outline" className="w-full" onClick={copyReferralLink}>
@@ -314,7 +324,7 @@ export default function HomePage() {
             )}
           </Card>
 
-          <Card>
+          <Card className="md:col-span-2">
             <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
               Ganancias Totales
             </h3>
@@ -322,21 +332,24 @@ export default function HomePage() {
               Bs {data.total_earnings.toFixed(2)}
             </p>
           </Card>
+        </div>
 
+        {/* Network & Referrals Row */}
+        <div className="grid grid-cols-2 gap-4">
           <Card>
             <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
-              Personas en Red
+              Red
             </h3>
-            <p className="text-3xl font-bold text-gold gold-glow">
+            <p className="text-2xl font-bold text-gold gold-glow">
               {data.network_count}
             </p>
           </Card>
 
           <Card>
             <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
-              Registros Directos
+              Directos
             </h3>
-            <p className="text-3xl font-bold text-gold gold-glow">
+            <p className="text-2xl font-bold text-gold gold-glow">
               {data.direct_referrals}
             </p>
           </Card>
@@ -346,104 +359,76 @@ export default function HomePage() {
           <h3 className="text-sm text-gold uppercase tracking-wider font-light mb-2 text-center reveal-float">
             Bono de esfuerzo
           </h3>
-          <p className="text-xs text-text-secondary text-balance text-center reveal-float">
-            Recompensas especiales por crecimiento real de tu red. Estos bonos se pagan una sola vez
-            al cumplir cada meta, sin importar el VIP que tengas.
+          <p className="text-xs text-text-secondary text-balance text-center mb-4">
+            Aquí podrás ver nuevos bonos y promociones.
           </p>
-          <div className="flex gap-3 text-sm text-text-secondary overflow-x-auto justify-center">
-            <div className="rounded-lg border border-gold border-opacity-20 bg-dark-card px-4 py-3 reveal-float transition-transform duration-300 hover:-translate-y-0.5 text-center animate-[revealFloat_6s_ease-in-out_infinite]">
-              <p className="text-xs uppercase tracking-wider text-gold-bright">Meta 1</p>
-              <p className="mt-1 font-semibold text-text-primary">30 activos</p>
-              <p className="text-xs text-text-secondary">Primer nivel</p>
-              <p className="mt-2 text-gold font-bold">Bs 300</p>
-              <p className="text-xs text-text-secondary">
-                Se paga al tener 30 activos directos.
-              </p>
-            </div>
-            <div className="rounded-lg border border-gold border-opacity-20 bg-dark-card px-4 py-3 reveal-float transition-transform duration-300 hover:-translate-y-0.5 text-center animate-[revealFloat_6s_ease-in-out_infinite]">
-              <p className="text-xs uppercase tracking-wider text-gold-bright">Meta 2</p>
-              <p className="mt-1 font-semibold text-text-primary">50 activos</p>
-              <p className="text-xs text-text-secondary">Primer y segundo nivel</p>
-              <p className="mt-2 text-gold font-bold">Bs 500</p>
-              <p className="text-xs text-text-secondary">
-                Cuenta activos directos y de tu segundo nivel.
-              </p>
-            </div>
-            <div className="rounded-lg border border-gold border-opacity-20 bg-dark-card px-4 py-3 reveal-float transition-transform duration-300 hover:-translate-y-0.5 text-center animate-[revealFloat_6s_ease-in-out_infinite]">
-              <p className="text-xs uppercase tracking-wider text-gold-bright">Meta 3</p>
-              <p className="mt-1 font-semibold text-text-primary">100 socios</p>
-              <p className="text-xs text-text-secondary">Primer, segundo y tercer nivel</p>
-              <p className="mt-2 text-gold font-bold">Bs 1000</p>
-              <p className="text-xs text-text-secondary">
-                Se paga al completar 100 activos en 3 niveles.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-text-secondary">
+            {data.effort_bonuses && data.effort_bonuses.length > 0 ? (
+              data.effort_bonuses.map((bonus) => (
+                <div key={bonus.id} className="rounded-lg border border-blue-bright/20 bg-dark-card px-4 py-3 transition-transform duration-300 hover:-translate-y-0.5 text-center hover:border-blue-bright/40">
+                  <p className="text-xs uppercase tracking-wider text-blue-bright">{bonus.title}</p>
+                  <p className="mt-1 font-semibold text-text-primary">{bonus.target_kpi}</p>
+                  <p className="text-xs text-text-secondary">{bonus.level_description}</p>
+                  <p className="mt-2 text-gold font-bold">Bs {bonus.amount_bs}</p>
+                  <p className="text-xs text-text-secondary mt-1">
+                    {bonus.requirement_description}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-3 text-center">
+                <p className="text-xs text-text-secondary">Próximamente más metas.</p>
+              </div>
+            )}
           </div>
-          <p className="text-xs text-text-secondary mt-3 text-center">
-            Aplica sin importar el VIP adquirido y no se repite.
+
+          <p className="text-xs text-text-secondary mt-3 text-center italic">
+            "Tu esfuerzo construye el hogar de tus sueños."
           </p>
         </Card>
 
         <div className="profile-stage reveal-stagger">
-          <div className="profile-header">
-            <h2 className="profile-title">Comunidad en movimiento</h2>
-            <p className="profile-subtitle">
+          <div className="profile-header text-center mx-auto">
+            <h2 className="profile-title text-center">Comunidad en movimiento</h2>
+            <p className="profile-subtitle text-center">
               Nunca dejes para mañana lo que hoy puedes hacer
             </p>
           </div>
           <div className="profile-column">
-            {Array.from({ length: 120 }, (_, index) => {
-              const names = [
-                'Luna Vega',
-                'Mateo Ruiz',
-                'Sofia Rojas',
-                'Diego Cruz',
-                'Valeria Soto',
-                'Andre Rivas',
-                'Camila Paz',
-                'Leo Vargas',
-                'Nina Castillo',
-                'Ruben Silva',
-                'Adriana Flores',
-                'Kevin Paredes',
-              ]
-              const name = names[index % names.length]
-              const username = `${name.split(' ')[0].toLowerCase()}_${index + 1}`
-              const email = `${username}@vip.com`
-              const country = ['Bolivia', 'Peru', 'Chile', 'Colombia', 'Mexico'][index % 5]
-              const vipLevel = (index % 7) + 1
-              const avatarId = (index % 70) + 1
-              return (
-                <div key={`${name}-${index}`} className="profile-card">
-                  <div className="profile-avatar">
-                    <img
-                      src={`https://i.pravatar.cc/80?img=${avatarId}`}
-                      alt={name}
-                      className="profile-avatar-img"
-                      loading="lazy"
-                    />
+            {data.latest_users && data.latest_users.length > 0 ? (
+              data.latest_users.map((user, index) => {
+                const initial = user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'
+                return (
+                  <div key={`${user.id}-${index}`} className="profile-card p-0.5 min-w-[50px]">
+                    <div className="profile-avatar flex items-center justify-center bg-gold/5 border border-gold text-gold font-bold rounded-full w-[16px] h-[16px] text-[8px] shadow-[0_0_2px_rgba(255,193,7,0.2)]">
+                      {initial}
+                    </div>
+                    <div className="profile-info">
+                      <p className="profile-name text-gold/90 text-[6px] leading-tight truncate w-full text-center">{user.full_name?.split(' ')[0] || 'User'}</p>
+                      <p className="profile-meta text-[5px] text-text-secondary leading-none mt-0.5 truncate w-full text-center">@{user.username}</p>
+                      <p className="profile-meta text-[4px] text-green-400 opacity-80 mt-0.5 text-center">
+                        ●
+                      </p>
+                    </div>
                   </div>
-                  <div className="profile-info">
-                    <p className="profile-name">{name}</p>
-                    <p className="profile-meta">@{username} · {country}</p>
-                    <p className="profile-meta">{email}</p>
-                    <p className="profile-rank">Activo - VIP {vipLevel}</p>
-                  </div>
-                  <div className="profile-glow" />
-                </div>
-              )
-            })}
+                )
+              })
+            ) : (
+              <div className="p-4 text-center">
+                <p className="text-xs text-text-secondary">Uniendo a la comunidad...</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Bottom Carousel removed */}
-      </div>
+      </div >
 
       <p className="mt-6 text-xs text-text-secondary text-center">
-        © 2026 ULTRON. Todos los derechos reservados por ULTRON.
+        © 2026 SmartHogar. Todos los derechos reservados por SmartHogar.
       </p>
 
       <BottomNav />
-    </div>
+    </div >
   )
 }

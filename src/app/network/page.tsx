@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import BottomNav from '@/components/ui/BottomNav'
+import { useToast } from '@/components/ui/Toast'
+import ScreenshotProtection from '@/components/ui/ScreenshotProtection'
 
 interface ReferralUser {
   id: string
@@ -30,31 +32,44 @@ export default function NetworkPage() {
     fetchNetwork()
   }, [])
 
+  /* Robust Network Fetcher */
   const fetchNetwork = async () => {
     try {
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('auth_token='))
-        ?.split('=')[1]
+      // 1. Try extracting token from loose cookies
+      const tokenMatch = document.cookie.match(/auth_token=([^;]+)/)
+      const token = tokenMatch ? tokenMatch[1] : null
 
-      if (!token) {
-        router.push('/login')
-        return
+      // 2. Prepare headers (explicit auth or rely on cookie)
+      const headers: HeadersInit = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
       }
 
       const res = await fetch('/api/user/network', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
+        credentials: 'include', // Ensure cookies are sent even if HttpOnly
       })
 
       if (res.ok) {
         const data = await res.json()
         setNetwork(data)
       } else {
-        setError('No se pudo cargar tu red de referidos')
+        const errorText = await res.text()
+        console.error('API Error:', res.status, errorText)
+        if (res.status === 401) {
+          router.push('/login')
+          return
+        }
+        try {
+          const jsonError = JSON.parse(errorText)
+          setError(jsonError.error || `Error ${res.status}: No se pudo cargar la red`)
+        } catch (e) {
+          setError(`Error ${res.status}: Fallo en el servidor`)
+        }
       }
     } catch (error) {
       console.error('Error fetching network:', error)
-      setError('Error al cargar la red')
+      setError('Error de conexión al cargar la red')
     } finally {
       setLoading(false)
     }
@@ -128,305 +143,240 @@ export default function NetworkPage() {
     })
   }
 
-  const renderUserNode = (user: ReferralUser) => {
-    const hasChildren = user.referrals && user.referrals.length > 0
+  /* Robust Recursive Tree Renderer (Div-based) */
+  const renderTree = (node: ReferralUser) => {
+    const hasChildren = node.referrals && node.referrals.length > 0
 
     return (
-      <div key={user.id} className="flex flex-col items-center relative">
-        {/* Usuario - clickeable */}
-        <button
-          onClick={() => setSelectedUser(user)}
-          className="flex flex-col items-center group cursor-pointer hover:scale-110 transition-transform"
+      <div key={node.id} className="flex flex-col items-center relative px-2">
+        {/* Node Card */}
+        <div
+          className="relative z-10 flex flex-col items-center group cursor-pointer p-2 transition-transform hover:scale-105"
+          onClick={() => setSelectedUser(node)}
         >
-          <div className="relative flex flex-col items-center">
-            <span className="text-3xl transition-all group-hover:scale-125">
-              {getStatusIcon(user.status)}
-            </span>
-            {user.vip_packages.length > 0 && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-gold rounded-full flex items-center justify-center text-[9px] font-bold text-black">
-                {user.vip_packages.length}
+          {/* Avatar Container */}
+          <div className="relative mb-2">
+            <div className={`w-12 h-12 rounded-full border-2 overflow-hidden bg-dark-bg flex items-center justify-center shadow-lg ${node.status === 'ACTIVO' ? 'border-green-400 shadow-green-400/20' :
+              node.status === 'PENDIENTE' ? 'border-orange-400' : 'border-gray-600'
+              }`}>
+              <span className="text-xs font-bold text-white">
+                {node.username.substring(0, 2).toUpperCase()}
+              </span>
+            </div>
+
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-dark-bg border border-dark-card flex items-center justify-center text-[8px]">
+              {getStatusIcon(node.status)}
+            </div>
+
+            {node.vip_packages.length > 0 && (
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-gold rounded-full flex items-center justify-center text-[8px] font-bold text-black border border-white animate-pulse">
+                {node.vip_packages.length}
               </div>
             )}
           </div>
-          <span className="mt-2 text-[10px] font-semibold text-text-primary text-center max-w-[70px] truncate hover:text-gold transition-colors">
-            @{user.username}
-          </span>
-          <span className="text-[8px] text-text-secondary text-center max-w-[70px] truncate">
-            {user.full_name}
-          </span>
-        </button>
 
-        {/* Conexión a referidos */}
+          {/* User Info */}
+          <div className="text-center bg-black/40 backdrop-blur-sm px-2 py-1 rounded border border-white/5">
+            <p className="text-[10px] font-bold text-white truncate max-w-[80px] group-hover:text-gold">
+              {node.username}
+            </p>
+          </div>
+        </div>
+
+        {/* Lines and Children */}
         {hasChildren && (
-          <div className="flex flex-col items-center w-full">
-            <div className="w-0.5 h-6 bg-gold/40"></div>
+          <div className="flex flex-col items-center">
+            {/* Vertical Line Down from Parent */}
+            <div className="w-px h-6 bg-gold/50"></div>
 
-            <div className="relative flex gap-8 justify-center items-start">
-              {user.referrals.length > 1 && (
-                <div
-                  className="absolute top-0 h-0.5 bg-gold/40"
+            {/* Horizontal Bar */}
+            <div className="relative flex items-start justify-center gap-4">
+              {/* Connecting Bar */}
+              {node.referrals.length > 1 && (
+                <div className="absolute top-0 h-px bg-gold/50"
                   style={{
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: `calc(100% - ${100 / user.referrals.length}%)`
+                    left: '0',
+                    right: '0',
+                    // Logic to clamp bar to centers of first/last child needs absolute positioning relative to this container
+                    // Simplification: Standard full width bar minus padding
+                    width: '100%',
+                    // Actually, to make it perfect without JS, we can use the technique of children having "Up Lines" that meet a "Cross Bar"
                   }}
                 ></div>
               )}
 
-              {user.referrals.map((child) => (
-                <div key={child.id} className="relative flex flex-col items-center">
-                  <div className="w-0.5 h-6 bg-gold/40"></div>
-                  {renderUserNode(child)}
-                </div>
-              ))}
+              {/* Children Wrapper */}
+              <div className="flex">
+                {node.referrals.map((child, index) => (
+                  <div key={child.id} className="flex flex-col items-center relative pt-4">
+                    {/* Up Line for Child */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-4 bg-gold/50"></div>
+
+                    {/* Horizontal Bar Segments (Left/Right) for this child slot to connect to neighbors */}
+                    {node.referrals.length > 1 && (
+                      <>
+                        {/* Right connector (if not last) */}
+                        {index < node.referrals.length - 1 && (
+                          <div className="absolute top-0 right-0 w-1/2 h-px bg-gold/50"></div>
+                        )}
+                        {/* Left connector (if not first) */}
+                        {index > 0 && (
+                          <div className="absolute top-0 left-0 w-1/2 h-px bg-gold/50"></div>
+                        )}
+                      </>
+                    )}
+
+                    {renderTree(child)}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
       </div>
     )
   }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pb-20">
-        <Card glassEffect>
-          <div className="space-y-3 text-center">
-            <p className="text-gold text-lg font-semibold">Cargando tu red...</p>
-            <div className="flex gap-2 justify-center">
-              <div className="w-2 h-2 bg-gold rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-            </div>
-          </div>
-        </Card>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gold text-lg font-light animate-pulse">Cargando árbol de red...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen pb-20">
-        <div className="max-w-screen-xl mx-auto p-6">
-          <Card glassEffect>
-            <div className="text-center space-y-4">
-              <p className="text-red-400">{error}</p>
-              <button
-                onClick={fetchNetwork}
-                className="px-4 py-2 bg-gold text-dark-bg rounded-btn font-semibold hover:bg-gold-bright transition-colors"
-              >
-                Reintentar
-              </button>
-            </div>
-          </Card>
-        </div>
+      <div className="min-h-screen pb-20 flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <h2 className="text-2xl text-red-400 font-bold">Error</h2>
+        <p className="text-text-secondary">{error}</p>
+        <button
+          onClick={fetchNetwork}
+          className="px-6 py-2 bg-dark-card border border-gold/30 text-gold rounded-full hover:bg-gold hover:text-dark-bg transition-all"
+        >
+          Reintentar
+        </button>
         <BottomNav />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="max-w-screen-xl mx-auto p-6 space-y-6">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gold gold-glow">Mi Red</h1>
-          <p className="mt-2 text-text-secondary uppercase tracking-wider text-sm font-light">
-            Red de referidos
-          </p>
-        </div>
+    <div className="min-h-screen pb-20 overflow-hidden relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-azul-armada via-azul-noche to-black">
+      <ScreenshotProtection />
+      {/* Background Grid Pattern */}
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
 
-        {!error && (
-          <div className="space-y-6">
-            {/* Header con controles y leyenda */}
-            <div className="text-center space-y-4">
-              <p className="text-text-secondary">
-                Total de referidos: <span className="text-gold font-bold">{network ? countReferrals(network) : 0}</span>
-              </p>
-
-              {/* Controles de zoom */}
-              <div className="flex items-center justify-center gap-4 flex-wrap">
-                <button
-                  onClick={() => setZoom(Math.max(50, zoom - 10))}
-                  className="px-3 py-2 bg-dark-card border border-gold/30 text-gold rounded hover:bg-gold/10 transition-colors text-sm font-semibold"
-                >
-                  − Reducir
-                </button>
-                <span className="text-text-primary font-semibold min-w-[60px] text-center">
-                  {zoom}%
-                </span>
-                <button
-                  onClick={() => setZoom(Math.min(200, zoom + 10))}
-                  className="px-3 py-2 bg-dark-card border border-gold/30 text-gold rounded hover:bg-gold/10 transition-colors text-sm font-semibold"
-                >
-                  + Ampliar
-                </button>
-                <button
-                  onClick={resetView}
-                  className="px-3 py-2 bg-dark-card border border-gold/30 text-gold rounded hover:bg-gold/10 transition-colors text-xs"
-                >
-                  Restablecer
-                </button>
-              </div>
-
-              <p className="text-xs text-text-secondary text-center">
-                💡 Arrastra para desplazarte • Usa los botones para hacer zoom
-              </p>
-
-              {/* Leyenda */}
-              <div className="flex gap-6 justify-center text-sm flex-wrap">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🟢</span>
-                  <span className="text-text-secondary">Activo</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🔴</span>
-                  <span className="text-text-secondary">Inactivo</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🟠</span>
-                  <span className="text-text-secondary">Pendiente</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Red visual */}
-            <div
-              className="w-full flex justify-center overflow-auto bg-dark-card rounded-btn border border-gold border-opacity-10 cursor-grab active:cursor-grabbing"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              style={{ minHeight: '600px', maxHeight: '75vh', touchAction: 'none' }}
-            >
-              <div
-                className="inline-block transition-transform duration-200 px-8 py-8 flex justify-center"
-                style={{
-                  transform: `scale(${zoom / 100}) translate(${panX}px, ${panY}px)`,
-                  transformOrigin: 'center top',
-                  minWidth: '100%',
-                }}
-              >
-                {network ? (
-                  renderUserNode(network)
-                ) : (
-                  <p className="text-text-secondary">Sin datos</p>
-                )}
+      <div className="relative z-10 max-w-screen-2xl mx-auto h-full flex flex-col">
+        {/* Header Flotante */}
+        <div className="fixed top-0 left-0 right-0 z-50 p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+          <div className="text-center pointer-events-auto mt-12">
+            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold via-white to-gold animate-shine">
+              Mi Red Global
+            </h1>
+            <div className="mt-2 flex items-center justify-center gap-4 text-xs font-mono">
+              <span className="bg-dark-card/80 px-3 py-1 rounded-full border border-gold/20 text-gold">
+                Total: {network ? countReferrals(network) : 0}
+              </span>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setZoom(z => Math.max(20, z - 10))} className="w-6 h-6 bg-dark-card rounded flex items-center justify-center hover:bg-gold/20">-</button>
+                <span className="w-8 text-center">{zoom}%</span>
+                <button onClick={() => setZoom(z => Math.min(150, z + 10))} className="w-6 h-6 bg-dark-card rounded flex items-center justify-center hover:bg-gold/20">+</button>
               </div>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Área de Visualización del Árbol (Safe Mode / Modo Seguro) */}
+        <div className="flex-1 overflow-auto bg-slate-900 relative w-full h-full p-10">
+
+          <div className="min-w-max min-h-full flex justify-center p-20 transition-transform duration-200 ease-out"
+            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center' }}>
+            {network ? (
+              <div className="flex flex-col items-center">
+                {renderTree(network)}
+
+                {(!network.referrals || network.referrals.length === 0) && (
+                  <div className="mt-8 p-4 bg-white/5 border border-white/10 rounded text-gray-300 text-center max-w-xs backdrop-blur-sm">
+                    <p className="font-bold text-gold">⚠️ Red Unipersonal</p>
+                    <p className="text-sm mt-1">Aún no tienes referidos registrados debajo de ti.</p>
+                    <p className="text-xs mt-2 text-gray-400">Invita a usuarios para ver crecer tu árbol.</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 text-white">
+                <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-gold animate-pulse">Cargando red...</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Modal de detalles */}
       {selectedUser && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
           onClick={() => setSelectedUser(null)}
         >
-          <Card glassEffect className="max-w-md w-full">
+          <Card glassEffect className="max-w-md w-full animate-bounce-slow border-gold/30">
             <div className="space-y-4">
               {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3 flex-1">
-                  <span className="text-4xl">{getStatusIcon(selectedUser.status)}</span>
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-4">
+                  <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center text-xl font-bold bg-dark-bg ${selectedUser.status === 'ACTIVO' ? 'border-green-400 text-green-400' : 'border-gray-500 text-gray-500'}`}>
+                    {selectedUser.username.substring(0, 2).toUpperCase()}
+                  </div>
                   <div>
-                    <h2 className="text-lg font-bold text-gold">{selectedUser.full_name}</h2>
-                    <p className="text-sm text-text-secondary">@{selectedUser.username}</p>
+                    <h2 className="text-xl font-bold text-white">{selectedUser.full_name}</h2>
+                    <p className="text-sm text-gold">@{selectedUser.username}</p>
+                    <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${selectedUser.status === 'ACTIVO' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                      {selectedUser.status}
+                    </span>
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedUser(null)}
-                  className="text-text-secondary hover:text-gold text-2xl font-bold"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Status */}
-              <div className="border-t border-gold border-opacity-20 pt-4">
-                <p className="text-xs text-text-secondary uppercase tracking-wide font-semibold mb-2">
-                  Estado
-                </p>
-                <div className="space-y-2">
-                  <p className="text-sm text-gold font-semibold">
-                    {selectedUser.status === 'ACTIVO'
-                      ? '✓ Activo'
-                      : selectedUser.status === 'PENDIENTE'
-                      ? '⏳ Pendiente'
-                      : '✗ Inactivo'}
-                  </p>
-                  <div className="text-xs text-text-secondary space-y-1">
-                    {selectedUser.vip_packages.filter(p => p.status === 'ACTIVE').length > 0 && (
-                      <p>🟢 <span className="font-semibold text-green-400">{selectedUser.vip_packages.filter(p => p.status === 'ACTIVE').length}</span> VIP Activo{selectedUser.vip_packages.filter(p => p.status === 'ACTIVE').length !== 1 ? 's' : ''}</p>
-                    )}
-                    {selectedUser.vip_packages.filter(p => p.status === 'PENDING').length > 0 && (
-                      <p>🟠 <span className="font-semibold text-orange-400">{selectedUser.vip_packages.filter(p => p.status === 'PENDING').length}</span> VIP Pendiente{selectedUser.vip_packages.filter(p => p.status === 'PENDING').length !== 1 ? 's' : ''}</p>
-                    )}
-                    {selectedUser.vip_packages.length === 0 && (
-                      <p className="italic">Sin paquetes VIP</p>
-                    )}
-                  </div>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-3 py-4 border-y border-white/5">
+                <div className="bg-dark-bg/50 p-3 rounded-lg text-center">
+                  <p className="text-xl font-bold text-white">{selectedUser.referrals?.length || 0}</p>
+                  <p className="text-[10px] text-text-secondary uppercase">Referidos</p>
+                </div>
+                <div className="bg-dark-bg/50 p-3 rounded-lg text-center">
+                  <p className="text-xl font-bold text-gold">{selectedUser.vip_packages?.length || 0}</p>
+                  <p className="text-[10px] text-text-secondary uppercase">Paks Activos</p>
                 </div>
               </div>
 
-              {/* VIP Packages */}
-              {selectedUser.vip_packages.length > 0 ? (
-                <div className="border-t border-gold border-opacity-20 pt-4 space-y-3">
-                  {selectedUser.vip_packages.filter(p => p.status === 'ACTIVE').length > 0 && (
-                    <div>
-                      <p className="text-xs text-gold uppercase tracking-wide font-semibold mb-2">
-                        ✓ Paquetes Activos
-                      </p>
-                      <div className="space-y-2">
-                        {selectedUser.vip_packages.filter(p => p.status === 'ACTIVE').map((pkg, idx) => (
-                          <div key={idx} className="bg-green-500/10 border border-green-500/30 rounded-btn p-2">
-                            <p className="text-sm font-semibold text-green-400">{pkg.name}</p>
-                            <p className="text-xs text-green-300">Nivel {pkg.level}</p>
-                          </div>
-                        ))}
-                      </div>
+              {/* VIP Packages List */}
+              {selectedUser.vip_packages && selectedUser.vip_packages.length > 0 && (
+                <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                  <p className="text-xs text-text-secondary font-bold uppercase tracking-wider sticky top-0 bg-dark-card/95 py-1">Paquetes VIP</p>
+                  {selectedUser.vip_packages.map((pkg, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-2 rounded bg-white/5 border border-white/5">
+                      <span className="text-sm text-white font-medium">{pkg.name}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded ${pkg.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                        {pkg.status === 'ACTIVE' ? 'ACTIVO' : 'PENDIENTE'}
+                      </span>
                     </div>
-                  )}
-
-                  {selectedUser.vip_packages.filter(p => p.status === 'PENDING').length > 0 && (
-                    <div>
-                      <p className="text-xs text-orange-400 uppercase tracking-wide font-semibold mb-2">
-                        ⏳ Paquetes Pendientes
-                      </p>
-                      <div className="space-y-2">
-                        {selectedUser.vip_packages.filter(p => p.status === 'PENDING').map((pkg, idx) => (
-                          <div key={idx} className="bg-orange-500/10 border border-orange-500/30 rounded-btn p-2">
-                            <p className="text-sm font-semibold text-orange-400">{pkg.name}</p>
-                            <p className="text-xs text-orange-300">Nivel {pkg.level}</p>
-                            <p className="text-xs text-orange-200/70 mt-1">Pendiente de aprobación</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="border-t border-gold border-opacity-20 pt-4">
-                  <p className="text-xs text-text-secondary italic">Sin paquetes VIP</p>
+                  ))}
                 </div>
               )}
 
-              {/* Referidos */}
-              {selectedUser.referrals && selectedUser.referrals.length > 0 && (
-                <div className="border-t border-gold border-opacity-20 pt-4">
-                  <p className="text-xs text-text-secondary uppercase tracking-wide font-semibold">
-                    Referidos directos: {selectedUser.referrals.length}
-                  </p>
-                </div>
-              )}
-
-              {/* Close button */}
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="w-full mt-4 px-4 py-2 bg-gold text-dark-bg rounded-btn font-semibold hover:bg-gold-bright transition-colors"
-              >
-                Cerrar
+              {/* View Profile Action */}
+              <button className="w-full py-3 bg-gradient-to-r from-azul-acero to-azul-armada rounded-xl text-white font-bold text-sm hover:brightness-110 transition-all shadow-lg active:scale-95">
+                Ver Perfil Completo
               </button>
             </div>
           </Card>

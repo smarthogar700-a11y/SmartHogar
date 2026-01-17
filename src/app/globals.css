@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -14,14 +16,52 @@ body {
 }
 
 :root {
-  --font-montserrat: "Helvetica Neue", Helvetica, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* 🎨 Paleta "Blue Depth" (Azul Profundo) */
+  --azul-noche: #021024;
+  --azul-armada: #052659;
+  --azul-acero: #5483B3;
+  --azul-claro: #7DA0CA;
+  --azul-hielo: #C1E8FF;
+
+  --bg-app: #021024;
+  --text-primary: #FFFFFF;
+  --text-secondary: #7DA0CA;
+
+  --accent-primary: #5483B3;
+  --accent-secondary: #052659;
+
+  /* Botones Defaults */
+  --btn-primary-bg: linear-gradient(135deg, #5483B3 0%, #052659 100%);
+  --btn-primary-text: #FFFFFF;
+
+  /* Glass Defaults */
+  --glass-bg: rgba(2, 16, 36, 0.85);
+  --glass-border: rgba(84, 131, 179, 0.3);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 body {
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: var(--font-inter), sans-serif;
+  background: radial-gradient(circle at 50% 0%, #052659 0%, #021024 80%) !important;
+  background-attachment: fixed !important;
+  color: var(--text-primary);
+  min-height: 100vh;
 }
 
 @layer utilities {
+  .glass-effect {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 30px var(--glass-shadow);
+    backdrop-filter: blur(10px);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
   .reveal-float {
     animation: revealFloat 700ms ease-out both;
   }
@@ -31,18 +71,23 @@ body {
     animation-delay: 120ms;
   }
 
-  .text-balance {
-    text-wrap: balance;
+  /* Blue Theme Utilities */
+  .blue-glow {
+    box-shadow: 0 0 15px rgba(125, 160, 202, 0.4);
   }
 
-  .glass-effect {
-    background: rgba(43, 43, 43, 0.6);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(201, 162, 77, 0.2);
+  .text-glow {
+    text-shadow: 0 0 8px rgba(193, 232, 255, 0.6);
   }
 
+  /* Compatibilidad con clases antiguas */
   .gold-glow {
-    text-shadow: 0 0 10px rgba(201, 162, 77, 0.5);
+    text-shadow: 0 0 10px rgba(193, 232, 255, 0.5);
+    /* Blue glow fallback */
+  }
+
+  .text-gold {
+    color: var(--azul-hielo);
   }
 }
 
@@ -51,6 +96,7 @@ body {
     opacity: 0;
     transform: translateY(18px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -58,44 +104,63 @@ body {
 }
 
 @keyframes logoDepth {
+
   0%,
   100% {
     opacity: 0.75;
     transform: scale(0.94);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.08);
   }
 }
 
-.profile-stage {
-  background: radial-gradient(circle at 15% 20%, rgba(201, 162, 77, 0.18), transparent 60%),
-    radial-gradient(circle at 85% 10%, rgba(0, 199, 255, 0.2), transparent 55%),
-    linear-gradient(135deg, rgba(15, 18, 28, 0.95), rgba(20, 24, 34, 0.9));
-  border: 1px solid rgba(201, 162, 77, 0.2);
-  border-radius: 20px;
-  padding: 24px;
+@keyframes shine-blue {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
-.profile-header {
-  text-align: center;
-  margin-bottom: 16px;
+@keyframes pulse-electric {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(41, 121, 255, 0.5), 0 0 30px rgba(0, 229, 255, 0.3);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(41, 121, 255, 0.8), 0 0 45px rgba(0, 229, 255, 0.5);
+    transform: scale(1.02);
+  }
 }
 
+/* Profile Styles adapted to Blue */
 .profile-title {
-  color: #c9a24d;
-  font-size: 18px;
-  letter-spacing: 0.2em;
+  color: var(--azul-hielo);
+  font-size: 20px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(84, 131, 179, 0.4);
 }
 
 .profile-subtitle {
-  color: rgba(224, 224, 224, 0.7);
+  color: var(--text-secondary);
+  opacity: 0.7;
   font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  margin-top: 6px;
 }
 
 .profile-column {
@@ -104,7 +169,6 @@ body {
   gap: 12px;
   max-height: 420px;
   overflow-y: auto;
-  scroll-snap-type: y mandatory;
   scrollbar-width: none;
 }
 
@@ -118,25 +182,32 @@ body {
   align-items: center;
   gap: 10px;
   padding: 16px;
-  border-radius: 14px;
-  background: rgba(25, 28, 40, 0.75);
-  border: 1px solid rgba(201, 162, 77, 0.15);
+  border-radius: 16px;
+  background: rgba(5, 38, 89, 0.3);
+  border: 1px solid rgba(84, 131, 179, 0.2);
   overflow: hidden;
-  animation: profileFloat 3.2s ease-in-out infinite;
-  scroll-snap-align: start;
   min-height: 84px;
+  backdrop-filter: blur(5px);
+  transition: all 0.4s ease;
+  animation: profileFloat 3.2s ease-in-out infinite;
 }
 
-/* all cards animated */
+.profile-card:hover {
+  background: rgba(5, 38, 89, 0.6);
+  border-color: var(--azul-acero);
+  box-shadow: 0 0 20px rgba(84, 131, 179, 0.2);
+  transform: translateY(-2px);
+}
 
 .profile-avatar {
-  width: 58px;
-  height: 58px;
-  border-radius: 16px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1px solid rgba(201, 162, 77, 0.4);
+  border: 2px solid var(--azul-acero);
+  box-shadow: 0 0 15px rgba(5, 38, 89, 0.5);
 }
 
 .profile-avatar-img {
@@ -152,37 +223,42 @@ body {
 }
 
 .profile-name {
-  color: #f1f1f1;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
 }
 
 .profile-meta {
-  color: rgba(224, 224, 224, 0.7);
+  color: var(--text-secondary);
   font-size: 11px;
+  opacity: 0.8;
   letter-spacing: 0.08em;
 }
 
 .profile-rank {
-  color: rgba(201, 162, 77, 0.85);
-  font-size: 12px;
+  color: var(--azul-hielo);
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
+  font-weight: 600;
 }
 
 .profile-glow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, transparent, rgba(201, 162, 77, 0.25), transparent);
+  background: linear-gradient(120deg, transparent, rgba(193, 232, 255, 0.1), transparent);
+  opacity: 0.3;
   transform: translateX(-100%);
   animation: profileGlow 4.5s ease-in-out infinite;
 }
 
 @keyframes profileFloat {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-6px);
   }
@@ -192,21 +268,11 @@ body {
   0% {
     transform: translateX(-120%);
   }
-  50% {
-    transform: translateX(120%);
-  }
-  100% {
-    transform: translateX(120%);
-  }
-}
 
-@keyframes profileGlow {
-  0% {
-    transform: translateX(-120%);
-  }
   50% {
     transform: translateX(120%);
   }
+
   100% {
     transform: translateX(120%);
   }

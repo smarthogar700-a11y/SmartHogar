@@ -73,6 +73,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Verificar que el usuario tenga al menos un VIP activo
+    const activeVipCount = await prisma.purchase.count({
+      where: {
+        user_id: authResult.user.userId,
+        status: 'ACTIVE',
+      },
+    })
+
+    if (activeVipCount === 0) {
+      return NextResponse.json(
+        { error: 'Debes tener al menos un paquete VIP activo para solicitar retiros' },
+        { status: 403 }
+      )
+    }
+
     // Create withdrawal and ledger entry in transaction
     const withdrawal = await prisma.$transaction(async (tx) => {
       const w = await tx.withdrawal.create({

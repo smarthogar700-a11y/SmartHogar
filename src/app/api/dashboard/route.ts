@@ -117,49 +117,49 @@ export async function GET(req: NextRequest) {
 
       const level2Users = level1Ids.length
         ? await prisma.user.findMany({
-            where: { sponsor_id: { in: level1Ids } },
-            select: { id: true },
-          })
+          where: { sponsor_id: { in: level1Ids } },
+          select: { id: true },
+        })
         : []
       const level2Ids = level2Users.map((u) => u.id)
 
       const level3Users = level2Ids.length
         ? await prisma.user.findMany({
-            where: { sponsor_id: { in: level2Ids } },
-            select: { id: true },
-          })
+          where: { sponsor_id: { in: level2Ids } },
+          select: { id: true },
+        })
         : []
       const level3Ids = level3Users.map((u) => u.id)
 
       const level4Users = level3Ids.length
         ? await prisma.user.findMany({
-            where: { sponsor_id: { in: level3Ids } },
-            select: { id: true },
-          })
+          where: { sponsor_id: { in: level3Ids } },
+          select: { id: true },
+        })
         : []
       const level4Ids = level4Users.map((u) => u.id)
 
       const level5Users = level4Ids.length
         ? await prisma.user.findMany({
-            where: { sponsor_id: { in: level4Ids } },
-            select: { id: true },
-          })
+          where: { sponsor_id: { in: level4Ids } },
+          select: { id: true },
+        })
         : []
       const level5Ids = level5Users.map((u) => u.id)
 
       const level6Users = level5Ids.length
         ? await prisma.user.findMany({
-            where: { sponsor_id: { in: level5Ids } },
-            select: { id: true },
-          })
+          where: { sponsor_id: { in: level5Ids } },
+          select: { id: true },
+        })
         : []
       const level6Ids = level6Users.map((u) => u.id)
 
       const level7Users = level6Ids.length
         ? await prisma.user.findMany({
-            where: { sponsor_id: { in: level6Ids } },
-            select: { id: true },
-          })
+          where: { sponsor_id: { in: level6Ids } },
+          select: { id: true },
+        })
         : []
       const level7Ids = level7Users.map((u) => u.id)
 
@@ -251,6 +251,37 @@ export async function GET(req: NextRequest) {
       console.error('Dashboard banners error:', error)
     }
 
+    let effortBonuses: any[] = []
+    try {
+      effortBonuses = await prisma.effortBonus.findMany({
+        where: { is_active: true },
+        orderBy: { sort_order: 'asc' },
+      })
+      // Init defaults if empty (fail-safe for frontend display)
+      if (effortBonuses.length === 0) {
+        // We rely on admin/api access to populate defaults mainly, or seed, but empty is safe to return as []
+      }
+    } catch (error) {
+      console.error('Dashboard effort bonuses error:', error)
+    }
+
+    let latestUsers: any[] = []
+    try {
+      latestUsers = await prisma.user.findMany({
+        where: { role: { not: 'ADMIN' } },
+        orderBy: { created_at: 'desc' },
+        take: 30,
+        select: {
+          id: true,
+          username: true,
+          full_name: true,
+          created_at: true,
+        },
+      })
+    } catch (error) {
+      console.error('Dashboard latest users error:', error)
+    }
+
     const payload = {
       user,
       daily_profit: activePurchases.reduce((sum, p) => sum + p.daily_profit_bs, 0),
@@ -269,6 +300,8 @@ export async function GET(req: NextRequest) {
       banners_top: bannersTop,
       banners_bottom: bannersBottom,
       announcements,
+      effort_bonuses: effortBonuses,
+      latest_users: latestUsers,
     }
 
     dashboardCache.set(cacheKey, {
