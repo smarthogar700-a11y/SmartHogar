@@ -371,11 +371,11 @@ export default function ShopPage() {
               <Card key={product.id} glassEffect className="p-2 w-full max-w-[180px]">
                 <div className="space-y-2">
                   {/* Imagen */}
-                  <div className="aspect-square bg-dark-card rounded-md overflow-hidden relative group">
+                  <div className="aspect-square bg-white rounded-md overflow-hidden relative group flex items-center justify-center p-2">
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
                           'https://via.placeholder.com/200x200?text=Producto'
