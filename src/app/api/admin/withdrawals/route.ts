@@ -34,6 +34,8 @@ export async function GET(req: NextRequest) {
     })
 
     const userIds = Array.from(new Set(withdrawals.map((w) => w.user_id)))
+
+    // Obtener saldo actual del ledger (ya incluye descuentos de solicitudes pendientes)
     const totals = userIds.length
       ? await prisma.walletLedger.groupBy({
           by: ['user_id'],
@@ -42,13 +44,30 @@ export async function GET(req: NextRequest) {
         })
       : []
 
+    // Obtener suma de retiros pendientes por usuario (para sumar al saldo mostrado)
+    const pendingWithdrawals = userIds.length
+      ? await prisma.withdrawal.groupBy({
+          by: ['user_id'],
+          where: {
+            user_id: { in: userIds },
+            status: 'PENDING'
+          },
+          _sum: { amount_bs: true },
+        })
+      : []
+
     const totalsMap = new Map(
       totals.map((t) => [t.user_id, t._sum.amount_bs || 0])
     )
 
+    const pendingMap = new Map(
+      pendingWithdrawals.map((p) => [p.user_id, p._sum.amount_bs || 0])
+    )
+
+    // El saldo mostrado en admin = saldo actual + retiros pendientes (para revertir el descuento)
     const payload = withdrawals.map((w) => ({
       ...w,
-      total_earnings_bs: totalsMap.get(w.user_id) || 0,
+      total_earnings_bs: (totalsMap.get(w.user_id) || 0) + (pendingMap.get(w.user_id) || 0),
     }))
 
     return NextResponse.json({

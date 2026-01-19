@@ -9,6 +9,7 @@ import Image from 'next/image'
 import ManualAdjustTab from '@/components/admin/ManualAdjustTab'
 import ConfigTab from '@/components/admin/ConfigTab'
 import ShopTab from '@/components/admin/ShopTab'
+import ChatTab from '@/components/admin/ChatTab'
 import { useToast } from '@/components/ui/Toast'
 
 type Tab =
@@ -20,6 +21,7 @@ type Tab =
   | 'config'
   | 'daily-profit'
   | 'shop'
+  | 'chat'
 
 interface Purchase {
   id: string
@@ -675,6 +677,7 @@ export default function AdminPage() {
     { key: 'daily-profit' as const, label: 'Diarias', icon: '⏱️' },
     { key: 'news' as const, label: 'Noticias', icon: '📰' },
     { key: 'shop' as const, label: 'Tienda', icon: '🛒' },
+    { key: 'chat' as const, label: 'Chat', icon: '💬' },
   ]
 
   const handleRunDailyProfit = async () => {
@@ -1082,6 +1085,15 @@ export default function AdminPage() {
                               {w.user.full_name}
                             </h3>
                             <p className="text-text-secondary">@{w.user.username}</p>
+                            <div className="mt-2 bg-green-500/10 border border-green-500/30 rounded px-2 py-1">
+                              <p className="text-[10px] text-text-secondary uppercase tracking-wider">Saldo en billetera</p>
+                              <p className={`text-lg font-bold ${w.total_earnings_bs >= w.amount_bs ? 'text-green-400' : 'text-red-400'}`}>
+                                Bs {w.total_earnings_bs.toFixed(2)}
+                              </p>
+                              {w.total_earnings_bs < w.amount_bs && (
+                                <p className="text-[9px] text-red-400">Saldo insuficiente</p>
+                              )}
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="text-[10px] text-text-secondary uppercase tracking-wider">Monto solicitado</p>
@@ -1096,14 +1108,25 @@ export default function AdminPage() {
                                 <span className="uppercase tracking-wider">Banco:</span> {w.bank_name || 'No registrado'}
                               </div>
                               <div>
-                                <span className="uppercase tracking-wider">Cuenta:</span> {w.account_number || 'No registrado'}
-                              </div>
-                              <div>
                                 <span className="uppercase tracking-wider">Modo:</span> {w.payout_method || 'No registrado'}
                               </div>
                             </div>
                           </div>
                         </div>
+
+                        {/* Imagen QR del usuario */}
+                        {w.qr_image_url && (
+                          <div className="bg-dark-card bg-opacity-50 rounded p-3">
+                            <p className="text-xs text-text-secondary uppercase tracking-wider mb-2">QR para pagar:</p>
+                            <div className="flex justify-center">
+                              <img
+                                src={w.qr_image_url}
+                                alt="QR del usuario"
+                                className="w-48 h-48 object-contain rounded-lg border border-gold/30"
+                              />
+                            </div>
+                          </div>
+                        )}
 
                         <div className="bg-dark-card bg-opacity-50 rounded p-2 space-y-1">
                           <div className="flex justify-between text-[10px]">
@@ -1702,6 +1725,8 @@ export default function AdminPage() {
             )}
 
             {tab === 'shop' && <ShopTab token={token} />}
+
+            {tab === 'chat' && <ChatTab token={token} />}
           </>
         )}
 

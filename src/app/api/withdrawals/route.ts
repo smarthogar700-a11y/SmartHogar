@@ -40,20 +40,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { amount_bs, bank_name, account_number, payout_method, phone_number } = await req.json()
+    const { amount_bs, bank_name, qr_image_url, payout_method, phone_number } = await req.json()
 
     // Validar montos exactos permitidos
-    const allowedAmounts = [30, 100, 200, 500, 1000, 2000, 5000]
+    const allowedAmounts = [10, 50, 100, 200, 500, 1000]
     if (!amount_bs || !allowedAmounts.includes(amount_bs)) {
       return NextResponse.json(
-        { error: 'Solo se permiten retiros en montos exactos: 30, 100, 200, 500, 1000, 2000 o 5000 Bs' },
+        { error: 'Solo se permiten retiros en montos exactos: 10, 50, 100, 200, 500 o 1000 Bs' },
         { status: 400 }
       )
     }
 
-    if (!bank_name || !account_number || !payout_method || !phone_number) {
+    if (!bank_name || !qr_image_url || !payout_method || !phone_number) {
       return NextResponse.json(
-        { error: 'Datos inválidos' },
+        { error: 'Datos invalidos. Debes subir tu imagen QR' },
         { status: 400 }
       )
     }
@@ -88,20 +88,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Create withdrawal and ledger entry in transaction
+    // Create withdrawal y descontar saldo inmediatamente
     const withdrawal = await prisma.$transaction(async (tx) => {
       const w = await tx.withdrawal.create({
         data: {
           user_id: authResult.user.userId,
           amount_bs,
           bank_name,
-          account_number,
+          qr_image_url,
           payout_method,
           phone_number,
           status: 'PENDING',
         },
       })
 
+      // Descontar saldo al solicitar
       await tx.walletLedger.create({
         data: {
           user_id: authResult.user.userId,

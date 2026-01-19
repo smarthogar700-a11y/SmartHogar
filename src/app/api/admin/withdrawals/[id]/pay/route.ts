@@ -33,6 +33,7 @@ export async function POST(
       )
     }
 
+    // Solo marcar como pagado (el saldo ya fue descontado al solicitar)
     await prisma.withdrawal.update({
       where: { id: params.id },
       data: {

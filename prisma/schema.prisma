@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DIRECT_URL")
+  url      = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -242,4 +242,20 @@ model GlobalConfig {
   whatsapp_number String   @default("")
 
   updated_at      DateTime @updatedAt
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  user_id     String
+  sender_role UserRole
+  message     String
+  is_read     Boolean  @default(false)
+
+  created_at  DateTime @default(now())
+
+  @@index([user_id])
+  @@index([user_id, is_read])
+  @@index([user_id, created_at(sort: Desc)])
+  @@index([sender_role, is_read])
+  @@index([created_at])
 }

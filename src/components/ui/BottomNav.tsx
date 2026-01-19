@@ -14,6 +14,7 @@ export default function BottomNav() {
     { href: '/shop', label: 'Tienda', icon: '🛒' },
     { href: '/network', label: 'Red', icon: '🌐' },
     { href: '/withdrawals', label: 'Retiros', icon: '💰' },
+    { href: '/chat', label: 'Soporte', icon: '💬' },
   ]
 
   return (

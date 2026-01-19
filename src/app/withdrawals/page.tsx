@@ -21,14 +21,14 @@ export default function WithdrawalsPage() {
   const router = useRouter()
   const [amount, setAmount] = useState('')
   const [bankName, setBankName] = useState('')
-  const [accountNumber, setAccountNumber] = useState('')
+  const [qrFile, setQrFile] = useState<File | null>(null)
+  const [qrPreview, setQrPreview] = useState<string | null>(null)
   const [payoutMethod, setPayoutMethod] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [balance, setBalance] = useState(0)
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [selectedReceiptImage, setSelectedReceiptImage] = useState<string | null>(null)
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -61,13 +61,25 @@ export default function WithdrawalsPage() {
     }
   }
 
+  const handleQrFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setQrFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setQrPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
     const amountNum = parseFloat(amount)
     if (isNaN(amountNum) || amountNum < 10) {
-      setError('El monto mínimo de retiro es Bs 10')
+      setError('El monto minimo de retiro es Bs 10')
       return
     }
 
@@ -76,14 +88,11 @@ export default function WithdrawalsPage() {
       return
     }
 
-    if (!bankName || !accountNumber || !payoutMethod || !phoneNumber) {
-      setError('Completa los datos bancarios')
+    if (!bankName || !qrFile || !payoutMethod || !phoneNumber) {
+      setError('Completa todos los campos y sube tu QR')
       return
     }
 
-    // ... (rest of function)
-
-    // And later in the JSX:
     setLoading(true)
 
     try {
@@ -97,7 +106,23 @@ export default function WithdrawalsPage() {
         return
       }
 
-      // Create withdrawal
+      // First upload the QR image
+      const formData = new FormData()
+      formData.append('file', qrFile)
+
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error('Error al subir la imagen QR')
+      }
+
+      const { url: qrImageUrl } = await uploadRes.json()
+
+      // Create withdrawal with QR image URL
       const withdrawalRes = await fetch('/api/withdrawals', {
         method: 'POST',
         headers: {
@@ -107,7 +132,7 @@ export default function WithdrawalsPage() {
         body: JSON.stringify({
           amount_bs: amountNum,
           bank_name: bankName,
-          account_number: accountNumber,
+          qr_image_url: qrImageUrl,
           payout_method: payoutMethod,
           phone_number: phoneNumber,
         }),
@@ -121,7 +146,8 @@ export default function WithdrawalsPage() {
       showToast('Solicitud exitosa. Tu pago se abonara en 24 a 72 horas.', 'success')
       setAmount('')
       setBankName('')
-      setAccountNumber('')
+      setQrFile(null)
+      setQrPreview(null)
       setPayoutMethod('')
       setPhoneNumber('')
       fetchData()
@@ -172,13 +198,13 @@ export default function WithdrawalsPage() {
             despues de la solicitud.
           </p>
           <p className="mt-2 text-[10px] text-text-secondary">
-            ⚠️ Se aplicará un 10 % de descuento a toda la solicitud de pago. ⚠️
+            Se aplicara un 10 % de descuento a toda la solicitud de pago.
           </p>
         </div>
 
         <Card glassEffect>
           <p className="text-xs font-semibold text-red-400 text-center mb-4">
-            Las solicitudes deben realizarse únicamente con montos exactos:
+            Las solicitudes deben realizarse unicamente con montos exactos:
           </p>
           <div className="flex flex-wrap gap-2 justify-center mb-6">
             {[10, 50, 100, 200, 500, 1000].map((mont) => (
@@ -225,24 +251,38 @@ export default function WithdrawalsPage() {
               />
             </div>
 
-            <Input
-              label="Número de cuenta"
-              type="text"
-              value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
-              placeholder="Ej: 1234567890"
-              required
-            />
+            <div className="space-y-2">
+              <label className="text-xs text-text-secondary font-medium ml-1">
+                Imagen QR para recibir pago <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleQrFileChange}
+                className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold file:text-dark-bg hover:file:bg-gold/80"
+                required
+              />
+              {qrPreview && (
+                <div className="mt-2">
+                  <p className="text-xs text-green-400 mb-2">Vista previa de tu QR:</p>
+                  <img
+                    src={qrPreview}
+                    alt="Vista previa QR"
+                    className="w-32 h-32 object-contain rounded-lg border border-gold/30"
+                  />
+                </div>
+              )}
+            </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-text-secondary font-medium ml-1">Método de retiro</label>
+              <label className="text-xs text-text-secondary font-medium ml-1">Metodo de retiro</label>
               <select
                 value={payoutMethod}
                 onChange={(e) => setPayoutMethod(e.target.value)}
                 className="w-full bg-dark-bg border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold/50 transition-colors appearance-none"
                 required
               >
-                <option value="" disabled>Selecciona un método</option>
+                <option value="" disabled>Selecciona un metodo</option>
                 <option value="Transferencia Bancaria">Transferencia Bancaria</option>
                 <option value="QR Simple">QR Simple</option>
                 <option value="Tigo Money">Tigo Money</option>
@@ -251,7 +291,7 @@ export default function WithdrawalsPage() {
             </div>
 
             <Input
-              label="Número de teléfono"
+              label="Numero de telefono"
               type="text"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
@@ -285,21 +325,18 @@ export default function WithdrawalsPage() {
                 <div className="flex gap-3">
                   {/* Miniatura del comprobante */}
                   {w.status === 'PAID' && w.receipt_url && (
-                    <div
-                      onClick={() => setSelectedReceiptImage(w.receipt_url!)}
-                      className="flex-shrink-0 cursor-pointer"
-                    >
+                    <div className="flex-shrink-0">
                       <img
                         src={w.receipt_url}
                         alt="Comprobante"
                         onContextMenu={(e) => e.preventDefault()}
                         onDragStart={(e) => e.preventDefault()}
-                        className="w-20 h-20 object-cover rounded-lg border-2 border-gold/30 hover:border-gold transition-colors select-none"
+                        className="w-20 h-20 object-cover rounded-lg border-2 border-gold/30 select-none"
                       />
                     </div>
                   )}
 
-                  {/* Información del retiro */}
+                  {/* Informacion del retiro */}
                   <div className="flex-1 space-y-2">
                     <div className="flex justify-between items-start">
                       <div>
@@ -316,7 +353,7 @@ export default function WithdrawalsPage() {
                     </div>
                     {w.status === 'PAID' && w.receipt_url && (
                       <p className="text-xs text-green-400">
-                        ✓ Comprobante adjunto
+                        Comprobante adjunto
                       </p>
                     )}
                   </div>
@@ -327,36 +364,8 @@ export default function WithdrawalsPage() {
         </div>
       </div>
 
-      {/* Modal de imagen en grande */}
-      {selectedReceiptImage && (
-        <div
-          className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedReceiptImage(null)}
-        >
-          <div className="relative max-w-4xl w-full">
-            <button
-              onClick={() => setSelectedReceiptImage(null)}
-              className="absolute -top-12 right-0 text-white text-4xl hover:text-gold transition-colors"
-            >
-              ×
-            </button>
-            <img
-              src={selectedReceiptImage}
-              alt="Comprobante de Pago"
-              onContextMenu={(e) => e.preventDefault()}
-              onDragStart={(e) => e.preventDefault()}
-              className="w-full h-auto rounded-lg select-none"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <p className="text-center text-sm text-text-secondary mt-4">
-              Comprobante de Pago
-            </p>
-          </div>
-        </div>
-      )}
-
       <p className="mt-6 text-xs text-text-secondary text-center">
-        © 2026 ULTRON. Todos los derechos reservados por ULTRON.
+        2026 ULTRON. Todos los derechos reservados por ULTRON.
       </p>
 
       <BottomNav />
