@@ -68,6 +68,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [missingToken, setMissingToken] = useState(false)
   const [showAnnouncements, setShowAnnouncements] = useState(false)
+  const [showAboutUs, setShowAboutUs] = useState(false)
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -427,6 +428,164 @@ export default function HomePage() {
       <p className="mt-6 text-xs text-text-secondary text-center">
         © 2026 SmartHogar. Todos los derechos reservados por SmartHogar.
       </p>
+
+      {/* Botón flotante - Sobre Nosotros */}
+      <button
+        onClick={() => setShowAboutUs(true)}
+        className="fixed bottom-24 right-1 z-40 w-10 h-10 bg-gradient-to-br from-gold to-gold-bright rounded-full shadow-lg flex items-center justify-center text-dark-bg hover:scale-110 transition-transform duration-300"
+        title="Sobre Nosotros"
+      >
+        <span className="text-lg font-bold">i</span>
+      </button>
+
+      {/* Modal - Sobre Nosotros */}
+      {showAboutUs && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex flex-col">
+          {/* Overlay para cerrar */}
+          <div className="absolute inset-0" onClick={() => setShowAboutUs(false)} />
+
+          {/* Contenedor del modal con scroll */}
+          <div className="relative z-10 flex-1 overflow-y-auto p-4">
+            <div className="max-w-lg w-full mx-auto my-4">
+              <Card glassEffect>
+                <div className="space-y-5">
+                  {/* Botón cerrar en esquina */}
+                  <div className="flex justify-end sticky top-0 bg-dark-card z-10 -mt-2 -mr-2 pt-2 pr-2">
+                    <button
+                      onClick={() => setShowAboutUs(false)}
+                      className="text-text-secondary hover:text-gold transition-colors text-xl font-bold bg-dark-card rounded-full w-8 h-8 flex items-center justify-center"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* FOTO DEL FUNDADOR - PARTE SUPERIOR */}
+                  <div className="flex flex-col items-center -mt-2">
+                    <div className="w-32 h-32 rounded-full border-4 border-gold overflow-hidden shadow-lg shadow-gold/30">
+                      <img
+                        src="https://i.ibb.co/pBLTkVdb/Gemini-Generated-Image-cykwu6cykwu6cykw.png"
+                        alt="Lawrence Miller - CEO SmartHogar"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=Lawrence+Miller&background=d4af37&color=1a1a2e&size=128&bold=true'
+                        }}
+                      />
+                    </div>
+                    <h3 className="text-gold font-bold text-xl mt-3">Lawrence Miller</h3>
+                    <p className="text-text-secondary text-sm">CEO & Fundador</p>
+                  </div>
+
+                  {/* Título de la empresa */}
+                  <div className="text-center border-b border-gold/20 pb-4">
+                    <h2 className="text-2xl font-bold text-gold gold-glow">SmartHogar</h2>
+                    <p className="text-xs text-text-secondary mt-1">Importadora y Distribuidora Internacional</p>
+                    <p className="text-xs text-gold/70 mt-1">Constituida en Florida, Estados Unidos</p>
+                  </div>
+
+                  {/* Contenido */}
+                  <div className="space-y-4">
+                    <div className="bg-dark-card bg-opacity-50 rounded-lg p-4 border border-gold/20">
+                      <h3 className="text-gold font-bold mb-2">¿Quiénes Somos?</h3>
+                      <p className="text-text-secondary text-sm leading-relaxed">
+                        SmartHogar es una empresa <span className="text-gold font-bold">legalmente constituida en el estado de Florida, Estados Unidos</span>,
+                        dedicada a la importación y distribución de productos para el hogar en toda Latinoamérica.
+                        Con más de <span className="text-gold font-bold">8 años de experiencia</span> en el mercado internacional,
+                        trabajamos directamente con proveedores de Asia, Europa y Estados Unidos.
+                      </p>
+                    </div>
+
+                    <div className="bg-dark-card bg-opacity-50 rounded-lg p-4 border border-gold/20">
+                      <h3 className="text-gold font-bold mb-2">Nuestro Modelo de Negocio</h3>
+                      <p className="text-text-secondary text-sm leading-relaxed">
+                        Como empresa importadora registrada en EE.UU., compramos productos en grandes volúmenes
+                        directamente de fábrica, obteniendo los mejores precios del mercado. Luego distribuimos
+                        estos productos en toda Latinoamérica a través de nuestra red establecida.
+                      </p>
+                      <p className="text-text-secondary text-sm leading-relaxed mt-2">
+                        Recientemente, abrimos una <span className="text-gold font-bold">oportunidad de participación</span> para
+                        personas que desean invertir con nosotros. El capital aportado aumenta nuestra capacidad
+                        de importación, y a cambio, compartimos un porcentaje de las ganancias generadas por
+                        las ventas.
+                      </p>
+                    </div>
+
+                    <div className="bg-dark-card bg-opacity-50 rounded-lg p-4 border border-gold/20">
+                      <h3 className="text-gold font-bold mb-2">¿Por qué confiar en nosotros?</h3>
+                      <ul className="text-text-secondary text-sm space-y-2">
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold">•</span>
+                          <span>Empresa constituida legalmente en Florida, USA</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold">•</span>
+                          <span>Más de 8 años de operación continua en el mercado</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold">•</span>
+                          <span>Red de distribución en múltiples países de LATAM</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold">•</span>
+                          <span>Tienda con productos disponibles para verificación</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-gold">•</span>
+                          <span>Pagos puntuales y transparencia total</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-dark-card bg-opacity-50 rounded-lg p-4 border border-gold/20">
+                      <h3 className="text-gold font-bold mb-2">Misión</h3>
+                      <p className="text-text-secondary text-sm leading-relaxed">
+                        Facilitar el acceso a productos de calidad a precios competitivos, generando
+                        oportunidades reales de crecimiento económico para quienes confían en nuestro proyecto.
+                      </p>
+                    </div>
+
+                    <div className="bg-dark-card bg-opacity-50 rounded-lg p-4 border border-gold/20">
+                      <h3 className="text-gold font-bold mb-2">Visión</h3>
+                      <p className="text-text-secondary text-sm leading-relaxed">
+                        Ser la importadora de referencia en Latinoamérica, reconocida por la calidad
+                        de nuestros productos y la seriedad de nuestras operaciones comerciales.
+                      </p>
+                    </div>
+
+                    {/* Datos destacados */}
+                    <div className="grid grid-cols-2 gap-2 pt-2">
+                      <div className="text-center bg-gold/10 rounded-lg p-3 border border-gold/30">
+                        <p className="text-xl font-bold text-gold">+8 años</p>
+                        <p className="text-[10px] text-text-secondary uppercase">En el mercado</p>
+                      </div>
+                      <div className="text-center bg-gold/10 rounded-lg p-3 border border-gold/30">
+                        <p className="text-xl font-bold text-gold">USA</p>
+                        <p className="text-[10px] text-text-secondary uppercase">Sede en Florida</p>
+                      </div>
+                      <div className="text-center bg-gold/10 rounded-lg p-3 border border-gold/30">
+                        <p className="text-xl font-bold text-gold">LATAM</p>
+                        <p className="text-[10px] text-text-secondary uppercase">Distribución</p>
+                      </div>
+                      <div className="text-center bg-gold/10 rounded-lg p-3 border border-gold/30">
+                        <p className="text-xl font-bold text-gold">24/7</p>
+                        <p className="text-[10px] text-text-secondary uppercase">Soporte</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Botón cerrar */}
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    onClick={() => setShowAboutUs(false)}
+                  >
+                    Cerrar
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </div >
