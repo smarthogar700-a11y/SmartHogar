@@ -21,6 +21,61 @@ interface CartItem {
   quantity: number
 }
 
+// Pool de reseñas predefinidas
+const allReviews = [
+  { name: 'María G.', rating: 5, comment: 'Excelente!', date: '15 ene' },
+  { name: 'Carlos R.', rating: 5, comment: 'Muy buena calidad', date: '12 ene' },
+  { name: 'Ana P.', rating: 4, comment: 'Llegó rápido', date: '10 ene' },
+  { name: 'José M.', rating: 5, comment: 'Mejor precio', date: '8 ene' },
+  { name: 'Laura S.', rating: 5, comment: '100% recomendado', date: '5 ene' },
+  { name: 'Pedro L.', rating: 4, comment: 'Buen producto', date: '3 ene' },
+  { name: 'Sofia T.', rating: 5, comment: 'Me encantó!', date: '1 ene' },
+  { name: 'Miguel A.', rating: 5, comment: 'Super rápido', date: '28 dic' },
+  { name: 'Carmen V.', rating: 5, comment: 'Tal cual foto', date: '25 dic' },
+  { name: 'Roberto D.', rating: 5, comment: 'Volveré a comprar', date: '22 dic' },
+  { name: 'Elena F.', rating: 4, comment: 'Muy profesional', date: '20 dic' },
+  { name: 'Diego H.', rating: 5, comment: 'Buen empaque', date: '18 dic' },
+  { name: 'Lucia M.', rating: 5, comment: 'Original 100%', date: '15 dic' },
+  { name: 'Andrés P.', rating: 4, comment: 'Cumple bien', date: '12 dic' },
+  { name: 'Rosa T.', rating: 5, comment: 'Excelente vendedor', date: '10 dic' },
+  { name: 'Fernando S.', rating: 5, comment: 'Lo amo!', date: '8 dic' },
+  { name: 'Patricia V.', rating: 5, comment: 'Perfecto estado', date: '5 dic' },
+  { name: 'Jorge L.', rating: 4, comment: 'Buena compra', date: '3 dic' },
+  { name: 'Mónica R.', rating: 5, comment: 'Súper contenta', date: '1 dic' },
+  { name: 'Ricardo B.', rating: 5, comment: 'A+++', date: '28 nov' },
+]
+
+// Función para obtener múltiples reseñas basadas en el ID del producto
+const getProductReviews = (productId: number) => {
+  const startIndex = (productId * 3) % allReviews.length
+  const reviewCount = 3 + (productId % 3) // 3 a 5 reseñas por producto
+  const reviews = []
+  for (let i = 0; i < reviewCount; i++) {
+    reviews.push(allReviews[(startIndex + i) % allReviews.length])
+  }
+  return reviews
+}
+
+// Calcular rating promedio
+const getAverageRating = (reviews: typeof allReviews) => {
+  const sum = reviews.reduce((acc, r) => acc + r.rating, 0)
+  return (sum / reviews.length).toFixed(1)
+}
+
+// Componente de estrellas pequeñas
+const StarRating = ({ rating, size = 'xs' }: { rating: number, size?: 'xs' | 'sm' }) => {
+  const sizeClass = size === 'xs' ? 'text-[8px]' : 'text-[10px]'
+  return (
+    <div className="flex">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span key={star} className={`${sizeClass} ${star <= rating ? 'text-yellow-400' : 'text-gray-600'}`}>
+          ★
+        </span>
+      ))}
+    </div>
+  )
+}
+
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [whatsappNumber, setWhatsappNumber] = useState('')
@@ -383,14 +438,39 @@ export default function ShopPage() {
                     />
                   </div>
 
-                  {/* Info */}
+                  {/* Info con rating integrado */}
                   <div>
                     <h3 className="font-bold text-text-primary text-xs line-clamp-2 min-h-[32px]">
                       {product.name}
                     </h3>
-                    <p className="text-gold font-bold text-sm mt-1">
+                    <p className="text-gold font-bold text-sm">
                       $ {product.price_bs.toFixed(2)}
                     </p>
+                    {/* Rating y reseñas pegados al precio */}
+                    {(() => {
+                      const reviews = getProductReviews(product.id)
+                      const avgRating = getAverageRating(reviews)
+                      const totalReviews = 50 + (product.id * 7) % 200
+                      const repeatedReviews = [...reviews, ...reviews, ...reviews, ...reviews]
+                      return (
+                        <>
+                          <div className="flex items-center gap-0.5 -mt-0.5 leading-none">
+                            <StarRating rating={Math.round(Number(avgRating))} size="sm" />
+                            <span className="text-[6px] text-yellow-400">{avgRating}</span>
+                            <span className="text-[5px] text-text-secondary">({totalReviews})</span>
+                          </div>
+                          <div className="overflow-hidden -mt-1 leading-none">
+                            <div className="inline-flex animate-marquee-slower whitespace-nowrap">
+                              {repeatedReviews.map((review, idx) => (
+                                <span key={idx} className="text-[5px] text-text-secondary/60 mx-1">
+                                  {review.name.split(' ')[0]}: {review.comment}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )
+                    })()}
                   </div>
 
                   {/* Cantidad */}

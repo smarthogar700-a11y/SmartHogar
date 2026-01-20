@@ -299,3 +299,37 @@ body {
   transform: scale(1.05);
   box-shadow: 0 0 25px rgba(193, 232, 255, 0.7);
 }
+
+/* Animación marquee infinita para reseñas */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 15s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.animate-marquee-slow {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee-slow:hover {
+  animation-play-state: paused;
+}
+
+.animate-marquee-slower {
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee-slower:hover {
+  animation-play-state: paused;
+}
