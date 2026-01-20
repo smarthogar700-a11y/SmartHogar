@@ -14,7 +14,7 @@ export default function SignupClient({
 }) {
   const router = useRouter()
   // Establecer 'CARLOS9092' como patrocinador por defecto si no viene de URL referida
-  const defaultSponsorCode = initialSponsorCode || 'CARLOS9092'
+  const defaultSponsorCode = initialSponsorCode || 'ZOE9092'
   const [formData, setFormData] = useState({
     sponsor_code: defaultSponsorCode,
     full_name: '',
