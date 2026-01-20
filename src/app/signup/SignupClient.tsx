@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
+import Card from '@/components/ui/Card'
 
 export default function SignupClient({
   initialSponsorCode = '',
@@ -25,6 +26,8 @@ export default function SignupClient({
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [createdCredentials, setCreatedCredentials] = useState({ username: '', password: '' })
   const { showToast } = useToast()
   // Siempre bloquear el campo de patrocinador
   const lockSponsor = true
@@ -65,8 +68,12 @@ export default function SignupClient({
         return
       }
 
-      showToast('Registro exitoso. Por favor inicia sesión.', 'success')
-      router.push('/login')
+      // Guardar credenciales y mostrar modal
+      setCreatedCredentials({
+        username: formData.username,
+        password: formData.password,
+      })
+      setShowSuccessModal(true)
     } catch (err) {
       setError('Error de conexión')
     } finally {
@@ -156,6 +163,47 @@ export default function SignupClient({
       <p className="mt-8 text-xs text-text-secondary">
         © 2026 ULTRON. Todos los derechos reservados por ULTRON.
       </p>
+
+      {/* Modal de registro exitoso */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-80">
+          <Card glassEffect>
+            <div className="text-center space-y-4 p-2">
+              <div className="text-5xl mb-2">🎉</div>
+              <h2 className="text-xl font-bold text-gold">¡Registro Exitoso!</h2>
+              <p className="text-text-secondary text-sm">
+                Tu cuenta ha sido creada correctamente. Guarda tus credenciales:
+              </p>
+
+              <div className="bg-dark-card border border-gold/30 rounded-lg p-4 space-y-3">
+                <div>
+                  <p className="text-xs text-text-secondary uppercase">Usuario</p>
+                  <p className="text-gold font-bold text-lg">{createdCredentials.username}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-text-secondary uppercase">Contraseña</p>
+                  <p className="text-gold font-bold text-lg">{createdCredentials.password}</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-text-secondary">
+                Recuerda guardar estos datos en un lugar seguro
+              </p>
+
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => {
+                  setShowSuccessModal(false)
+                  router.push('/login')
+                }}
+              >
+                Aceptar e Iniciar Sesión
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

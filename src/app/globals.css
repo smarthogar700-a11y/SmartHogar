@@ -277,3 +277,25 @@ body {
     transform: translateX(120%);
   }
 }
+
+/* Animación de pulso adelante-atrás para botón de referido */
+@keyframes pulseZoom {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(193, 232, 255, 0.3);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 30px rgba(193, 232, 255, 0.8);
+  }
+}
+
+.animate-shake-glow {
+  animation: pulseZoom 2.5s ease-in-out infinite;
+}
+
+.animate-shake-glow:hover {
+  animation: none;
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(193, 232, 255, 0.7);
+}

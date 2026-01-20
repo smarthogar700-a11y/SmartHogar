@@ -257,8 +257,16 @@ export default function HomePage() {
               <div className="bg-dark-card border border-blue-bright/20 rounded-btn px-3 py-2 text-xs text-text-secondary break-all">
                 {referralLink}
               </div>
-              <Button variant="outline" className="w-full" onClick={copyReferralLink}>
-                Copiar link de referido
+              <Button
+                variant="outline"
+                className="w-full animate-shake-glow border-gold bg-gradient-to-r from-gold/20 to-gold-bright/20 hover:from-gold/40 hover:to-gold-bright/40"
+                onClick={copyReferralLink}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <span>📋</span>
+                  Copiar link de referido
+                  <span>👆</span>
+                </span>
               </Button>
             </div>
           </div>
