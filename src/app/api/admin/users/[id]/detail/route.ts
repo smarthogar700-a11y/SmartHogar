@@ -42,6 +42,7 @@ export async function GET(
             vip_package: {
               select: {
                 name: true,
+                daily_profit_bs: true,
               },
             },
           },
@@ -100,7 +101,7 @@ export async function GET(
         id: p.id,
         vip_package_name: p.vip_package.name,
         investment_bs: p.investment_bs,
-        daily_profit_bs: p.daily_profit_bs,
+        daily_profit_bs: p.vip_package.daily_profit_bs, // Usar ganancia actual del paquete VIP
         status: p.status,
         activated_at: p.activated_at,
         created_at: p.created_at,

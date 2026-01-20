@@ -2,6 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth/middleware'
 
+// Función para verificar si está bloqueado
+function isBlocked(lastRunAt: Date | null): { blocked: boolean; unlocksAt: Date | null } {
+  if (!lastRunAt) {
+    return { blocked: false, unlocksAt: null }
+  }
+
+  const now = new Date()
+  const lastRun = new Date(lastRunAt)
+
+  // Calcular la próxima 1:00 AM después de la última ejecución
+  const unlockTime = new Date(lastRun)
+  unlockTime.setHours(1, 0, 0, 0) // Establecer a 1:00 AM
+
+  // Si la última ejecución fue después de la 1:00 AM de hoy, desbloquea mañana a la 1:00 AM
+  if (lastRun >= unlockTime) {
+    unlockTime.setDate(unlockTime.getDate() + 1)
+  }
+
+  // Si ahora es antes de la hora de desbloqueo, está bloqueado
+  if (now < unlockTime) {
+    return { blocked: true, unlocksAt: unlockTime }
+  }
+
+  return { blocked: false, unlocksAt: null }
+}
+
 export async function POST(req: NextRequest) {
   const authResult = requireAdmin(req)
   if ('error' in authResult) {
@@ -10,6 +36,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const now = new Date()
+
+    // Verificar si está bloqueado
+    const lastRun = await prisma.dailyProfitRun.findUnique({
+      where: { id: 1 },
+    })
+
+    const { blocked, unlocksAt } = isBlocked(lastRun?.last_run_at || null)
+
+    if (blocked) {
+      return NextResponse.json({
+        error: 'Ganancias ya procesadas hoy',
+        blocked: true,
+        last_run_at: lastRun?.last_run_at,
+        unlocks_at: unlocksAt,
+        message: `Bloqueado hasta la 1:00 AM`,
+      }, { status: 423 }) // 423 = Locked
+    }
 
     // Obtener todas las compras activas con su paquete VIP
     const activePurchases = await prisma.purchase.findMany({
@@ -85,11 +128,19 @@ export async function POST(req: NextRequest) {
       create: { id: 1, last_run_at: now },
     })
 
+    // Calcular hora de desbloqueo (próxima 1:00 AM)
+    const unlockTime = new Date(now)
+    unlockTime.setHours(1, 0, 0, 0)
+    if (now >= unlockTime) {
+      unlockTime.setDate(unlockTime.getDate() + 1)
+    }
+
     return NextResponse.json({
       message: 'Ganancias diarias procesadas exitosamente',
       processed: processedCount,
       synced: syncedCount,
       last_run_at: now,
+      unlocks_at: unlockTime,
       already_run: false,
     })
   } catch (error) {
@@ -112,6 +163,9 @@ export async function GET(req: NextRequest) {
       where: { id: 1 },
     })
 
+    // Verificar si está bloqueado
+    const { blocked, unlocksAt } = isBlocked(lastRun?.last_run_at || null)
+
     // Contar compras activas para mostrar info
     const activeCount = await prisma.purchase.count({
       where: { status: 'ACTIVE' },
@@ -119,7 +173,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       last_run_at: lastRun?.last_run_at || null,
-      already_run: false, // Siempre permitir ejecutar
+      blocked,
+      unlocks_at: unlocksAt,
       active_purchases: activeCount,
     })
   } catch (error) {

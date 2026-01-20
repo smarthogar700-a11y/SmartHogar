@@ -139,9 +139,10 @@ export default function AdminPage() {
   // ...
 
   const [dailyProfitStatus, setDailyProfitStatus] = useState<{
-    already_run: boolean
+    blocked: boolean
     last_run_at: string | null
-    next_unlock?: string
+    unlocks_at: string | null
+    active_purchases?: number
     processed?: number
     synced?: number
   } | null>(null)
@@ -523,9 +524,10 @@ export default function AdminPage() {
       if (res.ok) {
         const data = await res.json()
         setDailyProfitStatus({
-          already_run: !!data.already_run,
+          blocked: !!data.blocked,
           last_run_at: data.last_run_at || null,
-          next_unlock: data.next_unlock,
+          unlocks_at: data.unlocks_at || null,
+          active_purchases: data.active_purchases,
         })
       }
     } catch (error) {
@@ -691,29 +693,34 @@ export default function AdminPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
 
-      if (res.ok) {
-        const data = await res.json().catch(() => null)
-        if (data?.already_run) {
-          const nextUnlockDate = data.next_unlock ? new Date(data.next_unlock) : null
-          const unlockMsg = nextUnlockDate
-            ? ` Disponible a la 1:00 AM (Bolivia)`
-            : ''
-          showToast(`Ganancias ya actualizadas.${unlockMsg}`, 'info')
-        } else {
-          showToast(
-            `✅ Ganancias procesadas: ${data?.processed ?? 0} usuarios | Sincronizados: ${data?.synced ?? 0}`,
-            'success'
-          )
-        }
+      const data = await res.json().catch(() => null)
+
+      if (res.status === 423) {
+        // Bloqueado - ganancias ya procesadas hoy
+        const unlockTime = data?.unlocks_at ? new Date(data.unlocks_at) : null
+        const unlockMsg = unlockTime
+          ? `Disponible a la 1:00 AM (Bolivia)`
+          : ''
+        showToast(`🔒 Ganancias ya procesadas hoy. ${unlockMsg}`, 'info')
         setDailyProfitStatus({
-          already_run: !!data?.already_run,
+          blocked: true,
           last_run_at: data?.last_run_at || null,
-          next_unlock: data?.next_unlock,
+          unlocks_at: data?.unlocks_at || null,
+        })
+      } else if (res.ok) {
+        showToast(
+          `✅ Ganancias procesadas: ${data?.processed ?? 0} usuarios | Sincronizados: ${data?.synced ?? 0}`,
+          'success'
+        )
+        setDailyProfitStatus({
+          blocked: true,
+          last_run_at: data?.last_run_at || null,
+          unlocks_at: data?.unlocks_at || null,
           processed: data?.processed,
           synced: data?.synced,
         })
       } else {
-        showToast('Error al procesar ganancias', 'error')
+        showToast(data?.error || 'Error al procesar ganancias', 'error')
       }
     } catch (error) {
       showToast('Error de conexión', 'error')
@@ -1276,15 +1283,35 @@ export default function AdminPage() {
                       </div>
                     )}
 
+                    {/* Estado de bloqueo */}
+                    {dailyProfitStatus?.blocked && (
+                      <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 space-y-2">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-2xl">🔒</span>
+                          <span className="text-orange-400 font-bold">BLOQUEADO</span>
+                        </div>
+                        <p className="text-sm text-text-secondary">
+                          Las ganancias ya fueron procesadas hoy.
+                        </p>
+                        {dailyProfitStatus.unlocks_at && (
+                          <p className="text-xs text-orange-300">
+                            Se desbloquea a la <strong>1:00 AM</strong> (hora Bolivia)
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     <Button
                       variant="primary"
-                      className="w-full py-4 text-lg"
+                      className={`w-full py-4 text-lg ${dailyProfitStatus?.blocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                       onClick={handleRunDailyProfit}
-                      disabled={processing}
+                      disabled={processing || dailyProfitStatus?.blocked}
                     >
                       {processing
                         ? 'Procesando ganancias...'
-                        : '▶️ Actualizar Ganancias Ahora'}
+                        : dailyProfitStatus?.blocked
+                          ? '🔒 Bloqueado hasta 1:00 AM'
+                          : '▶️ Actualizar Ganancias Ahora'}
                     </Button>
                   </div>
                 </Card>
@@ -1295,6 +1322,7 @@ export default function AdminPage() {
                     <p>• Solo se procesan usuarios con VIP activo</p>
                     <p>• Cada usuario recibe la ganancia diaria según su paquete VIP</p>
                     <p>• El proceso se ejecuta manualmente por el administrador</p>
+                    <p>• <strong className="text-orange-400">Bloqueo:</strong> Después de actualizar, se bloquea hasta la 1:00 AM</p>
                     <p>• <strong className="text-gold">Procesados:</strong> Usuarios que recibieron ganancias diarias</p>
                     <p>• <strong className="text-blue-400">Sincronizados:</strong> Compras cuya ganancia se actualizó al paquete VIP</p>
                   </div>

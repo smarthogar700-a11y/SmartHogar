@@ -315,7 +315,7 @@ export default function ConfigTab({ token }: ConfigTabProps) {
               </tr>
             </thead>
             <tbody>
-              {bonusRules.map((rule) => (
+              {bonusRules.filter(rule => rule.level <= 3).map((rule) => (
                 <tr key={rule.id} className="border-b border-gold border-opacity-10 hover:bg-gold hover:bg-opacity-5 transition-colors">
                   <td className="py-3 px-4">
                     <span className="text-gold-bright font-bold text-xl">Nivel {rule.level}</span>
@@ -325,7 +325,7 @@ export default function ConfigTab({ token }: ConfigTabProps) {
                       {rule.level === 1 ? '👤 Patrocinador directo (quien invitó al usuario)' :
                        rule.level === 2 ? '👥 Segundo nivel (patrocinador del patrocinador)' :
                        rule.level === 3 ? '👨‍👩‍👧 Tercer nivel (patrocinador del nivel 2)' :
-                       `Nivel ${rule.level}`}
+                       null}
                     </span>
                   </td>
                   <td className="py-3 px-4">

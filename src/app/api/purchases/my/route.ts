@@ -16,13 +16,20 @@ export async function GET(req: NextRequest) {
           select: {
             name: true,
             level: true,
+            daily_profit_bs: true,
           },
         },
       },
       orderBy: { created_at: 'desc' },
     })
 
-    return NextResponse.json(purchases)
+    // Usar la ganancia actual del paquete VIP (no la guardada en la compra)
+    const purchasesWithCurrentProfit = purchases.map(p => ({
+      ...p,
+      daily_profit_bs: p.vip_package.daily_profit_bs,
+    }))
+
+    return NextResponse.json(purchasesWithCurrentProfit)
   } catch (error) {
     console.error('My purchases error:', error)
     return NextResponse.json(

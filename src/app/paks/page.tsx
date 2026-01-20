@@ -153,12 +153,6 @@ export default function PaksPage() {
             const purchasedData = purchasedPackages.find(p => p.id === pkg.id)
             const isPurchased = !!purchasedData
             const isDisabled = !pkg.is_enabled || isPurchased
-            const requirementText =
-              pkg.level === 6
-                ? 'Requisitos para activar este pak: 20 activos en tu primer y segundo nivel'
-                : pkg.level === 7
-                  ? 'Requisitos para activar este pak: 30 activos primer, segundo y tercer nivel'
-                  : ''
             return (
               <Card key={pkg.id} glassEffect>
                 <div className="space-y-4">
@@ -173,11 +167,6 @@ export default function PaksPage() {
                     <p className="text-xs text-gold mt-1">
                       {getPackageHook(pkg.level)}
                     </p>
-                    {requirementText ? (
-                      <p className="text-xs text-red-500 mt-2">
-                        {requirementText}
-                      </p>
-                    ) : null}
                   </div>
 
                   <div className="border-t border-b border-gold/20 py-4 space-y-2">

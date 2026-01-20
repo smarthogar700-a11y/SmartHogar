@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     let activePurchases: {
       daily_profit_bs: number
-      vip_package: { name: string; level: number }
+      vip_package: { name: string; level: number; daily_profit_bs: number }
     }[] = []
     try {
       activePurchases = await prisma.purchase.findMany({
@@ -77,6 +77,7 @@ export async function GET(req: NextRequest) {
             select: {
               name: true,
               level: true,
+              daily_profit_bs: true,
             },
           },
         },
@@ -102,19 +103,22 @@ export async function GET(req: NextRequest) {
     let referralBonusTotal = referralBonus
     let referralBonusLevels: { level: number; amount_bs: number }[] = []
     try {
+      // Sistema de bonos de patrocinio con 3 niveles
       const bonusRules = await prisma.referralBonusRule.findMany({
-        where: { level: { in: [1, 2, 3, 4, 5, 6, 7] } },
+        where: { level: { in: [1, 2, 3] } },
         select: { level: true, percentage: true },
       })
 
       const ruleMap = new Map(bonusRules.map((r) => [r.level, r.percentage]))
 
+      // Nivel 1: Referidos directos
       const level1Users = await prisma.user.findMany({
         where: { sponsor_id: authResult.user.userId },
         select: { id: true },
       })
       const level1Ids = level1Users.map((u) => u.id)
 
+      // Nivel 2: Referidos de mis referidos
       const level2Users = level1Ids.length
         ? await prisma.user.findMany({
           where: { sponsor_id: { in: level1Ids } },
@@ -123,6 +127,7 @@ export async function GET(req: NextRequest) {
         : []
       const level2Ids = level2Users.map((u) => u.id)
 
+      // Nivel 3: Referidos del nivel 2
       const level3Users = level2Ids.length
         ? await prisma.user.findMany({
           where: { sponsor_id: { in: level2Ids } },
@@ -131,46 +136,11 @@ export async function GET(req: NextRequest) {
         : []
       const level3Ids = level3Users.map((u) => u.id)
 
-      const level4Users = level3Ids.length
-        ? await prisma.user.findMany({
-          where: { sponsor_id: { in: level3Ids } },
-          select: { id: true },
-        })
-        : []
-      const level4Ids = level4Users.map((u) => u.id)
-
-      const level5Users = level4Ids.length
-        ? await prisma.user.findMany({
-          where: { sponsor_id: { in: level4Ids } },
-          select: { id: true },
-        })
-        : []
-      const level5Ids = level5Users.map((u) => u.id)
-
-      const level6Users = level5Ids.length
-        ? await prisma.user.findMany({
-          where: { sponsor_id: { in: level5Ids } },
-          select: { id: true },
-        })
-        : []
-      const level6Ids = level6Users.map((u) => u.id)
-
-      const level7Users = level6Ids.length
-        ? await prisma.user.findMany({
-          where: { sponsor_id: { in: level6Ids } },
-          select: { id: true },
-        })
-        : []
-      const level7Ids = level7Users.map((u) => u.id)
-
+      // Solo 3 niveles de patrocinio
       const levels: { level: number; ids: string[] }[] = [
         { level: 1, ids: level1Ids },
         { level: 2, ids: level2Ids },
         { level: 3, ids: level3Ids },
-        { level: 4, ids: level4Ids },
-        { level: 5, ids: level5Ids },
-        { level: 6, ids: level6Ids },
-        { level: 7, ids: level7Ids },
       ]
 
       let computedTotal = 0
@@ -282,15 +252,21 @@ export async function GET(req: NextRequest) {
       console.error('Dashboard latest users error:', error)
     }
 
+    // Usar la ganancia del paquete VIP actual (no la guardada en la compra)
+    const activePurchasesWithCurrentProfit = activePurchases.map(p => ({
+      ...p,
+      daily_profit_bs: p.vip_package.daily_profit_bs, // Siempre usar ganancia actual del paquete
+    }))
+
     const payload = {
       user,
-      daily_profit: activePurchases.reduce((sum, p) => sum + p.daily_profit_bs, 0),
+      daily_profit: activePurchasesWithCurrentProfit.reduce((sum, p) => sum + p.daily_profit_bs, 0),
       daily_profit_total: dailyProfitTotal,
-      active_vip_daily: activePurchases[0]?.daily_profit_bs || 0,
-      active_vip_name: activePurchases[0]?.vip_package.name || null,
-      active_vip_status: activePurchases.length ? 'ACTIVE' : null,
-      has_active_vip: activePurchases.length > 0,
-      active_purchases: activePurchases,
+      active_vip_daily: activePurchasesWithCurrentProfit[0]?.daily_profit_bs || 0,
+      active_vip_name: activePurchasesWithCurrentProfit[0]?.vip_package.name || null,
+      active_vip_status: activePurchasesWithCurrentProfit.length ? 'ACTIVE' : null,
+      has_active_vip: activePurchasesWithCurrentProfit.length > 0,
+      active_purchases: activePurchasesWithCurrentProfit,
       referral_bonus: referralBonus,
       referral_bonus_total: referralBonusTotal,
       referral_bonus_levels: referralBonusLevels,

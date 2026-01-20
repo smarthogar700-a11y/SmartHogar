@@ -39,6 +39,7 @@ export async function GET(
             vip_package: {
               select: {
                 name: true,
+                daily_profit_bs: true,
               },
             },
           },
@@ -88,15 +89,20 @@ export async function GET(
     }
 
     // Formatear compras con días de duración calculados
-    const purchases = user.purchases.map(p => ({
-      id: p.id,
-      vip_package_name: p.vip_package.name,
-      investment_bs: p.investment_bs,
-      status: p.status,
-      purchase_date: p.created_at.toISOString(),
-      daily_percentage: (p.daily_profit_bs / p.investment_bs) * 100,
-      duration_days: 365, // Duración fija de 1 año
-    }))
+    // Usar la ganancia actual del paquete VIP (no la guardada en la compra)
+    const purchases = user.purchases.map(p => {
+      const currentDailyProfit = p.vip_package.daily_profit_bs
+      return {
+        id: p.id,
+        vip_package_name: p.vip_package.name,
+        investment_bs: p.investment_bs,
+        status: p.status,
+        purchase_date: p.created_at.toISOString(),
+        daily_percentage: (currentDailyProfit / p.investment_bs) * 100,
+        daily_profit_bs: currentDailyProfit,
+        duration_days: 365, // Duración fija de 1 año
+      }
+    })
 
     return NextResponse.json({
       id: user.id,

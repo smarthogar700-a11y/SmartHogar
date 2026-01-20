@@ -10,8 +10,8 @@ async function applyReferralBonuses(
   level: number,
   multiplier: number
 ): Promise<void> {
-  // Detener si excede 7 niveles
-  if (level > 7) return
+  // Detener si excede 3 niveles (sistema de 3 niveles de patrocinio)
+  if (level > 3) return
 
   // Buscar el usuario y su patrocinador
   const user = await client.user.findUnique({

@@ -3,7 +3,9 @@ import { prisma } from '@/lib/db'
 
 export async function GET() {
   try {
+    // Solo devolver los 3 niveles de patrocinio
     const rules = await prisma.referralBonusRule.findMany({
+      where: { level: { lte: 3 } },
       orderBy: { level: 'asc' },
     })
     return NextResponse.json(rules)

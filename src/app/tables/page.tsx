@@ -182,8 +182,8 @@ export default function TablesPage() {
                                                 <span className="text-text-primary text-xs">
                                                     {rule.level === 1 ? '👤 Patrocinador directo (quien invitaste)' :
                                                         rule.level === 2 ? '👥 Segundo nivel (referidos de tus referidos)' :
-                                                            rule.level === 3 ? '👨‍👩‍👧 Tercer nivel' :
-                                                                `Nivel ${rule.level}`}
+                                                            rule.level === 3 ? '👨‍👩‍👧 Tercer nivel (referidos del nivel 2)' :
+                                                                null}
                                                 </span>
                                             </td>
                                             <td className="py-2 px-2 text-right">
