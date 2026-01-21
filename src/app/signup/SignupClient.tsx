@@ -161,7 +161,7 @@ export default function SignupClient({
         </form>
       </div>
       <p className="mt-8 text-xs text-text-secondary">
-        © 2026 ULTRON. Todos los derechos reservados por ULTRON.
+        © 2026 SmartHogar. Todos los derechos reservados por SmartHogar.
       </p>
 
       {/* Modal de registro exitoso */}

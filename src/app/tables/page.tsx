@@ -198,7 +198,7 @@ export default function TablesPage() {
                 </Card>
 
                 <p className="mt-6 text-xs text-text-secondary text-center">
-                    © 2026 ULTRON. Todos los derechos reservados por ULTRON.
+                    © 2026 SmartHogar. Todos los derechos reservados por SmartHogar.
                 </p>
             </div>
 
