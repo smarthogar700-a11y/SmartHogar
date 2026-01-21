@@ -183,8 +183,14 @@ export default function ChatTab({ token }: ChatTabProps) {
     <div className="flex gap-1 h-[calc(100vh-200px)]">
       {/* Lista de conversaciones - muy delgada */}
       <div className="w-28 flex-shrink-0 bg-dark-card rounded-lg overflow-hidden flex flex-col">
-        <div className="px-2 py-1.5 border-b border-white/10">
+        <div className="px-2 py-1.5 border-b border-white/10 flex items-center justify-between">
           <h3 className="text-gold font-bold text-xs">Chats</h3>
+          {conversations.filter(c => c.unread_count > 0).length > 0 && (
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            </span>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
@@ -192,25 +198,40 @@ export default function ChatTab({ token }: ChatTabProps) {
               Sin chats
             </p>
           ) : (
-            conversations.map((conv) => (
+            [...conversations]
+              .sort((a, b) => b.unread_count - a.unread_count)
+              .map((conv) => (
               <button
                 key={conv.user_id}
                 onClick={() => setSelectedUserId(conv.user_id)}
-                className={`w-full px-1.5 py-1.5 text-left border-b border-white/5 hover:bg-white/5 transition-colors ${selectedUserId === conv.user_id ? 'bg-gold/10 border-l-2 border-l-gold' : ''
-                  }`}
+                className={`w-full px-1.5 py-1.5 text-left border-b border-white/5 hover:bg-white/5 transition-colors relative ${selectedUserId === conv.user_id ? 'bg-gold/10 border-l-2 border-l-gold' : ''
+                  } ${conv.unread_count > 0 ? 'bg-red-500/10' : ''}`}
               >
                 <div className="flex justify-between items-center">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-text-primary truncate text-[11px]">
-                      {conv.user?.full_name || 'Usuario'}
+                  <div className="flex-1 min-w-0 flex items-center gap-1">
+                    {/* Punto rojo pulsante si hay mensajes no leídos */}
+                    {conv.unread_count > 0 && (
+                      <span className="relative flex h-2 w-2 flex-shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                    )}
+                    <p className={`font-medium truncate text-[11px] ${conv.unread_count > 0 ? 'text-white font-bold' : 'text-text-primary'}`}>
+                      {conv.user?.full_name?.split(' ')[0] || 'Usuario'}
                     </p>
                   </div>
                   {conv.unread_count > 0 && (
-                    <span className="bg-gold text-dark-bg text-[8px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center ml-0.5">
+                    <span className="bg-red-500 text-white text-[8px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center ml-0.5 px-1">
                       {conv.unread_count}
                     </span>
                   )}
                 </div>
+                {/* Preview del último mensaje */}
+                {conv.last_message && (
+                  <p className={`text-[9px] truncate mt-0.5 ${conv.unread_count > 0 ? 'text-red-300' : 'text-text-secondary'}`}>
+                    {conv.last_message.sender_role === 'ADMIN' ? 'Tú: ' : ''}{conv.last_message.message.substring(0, 20)}...
+                  </p>
+                )}
               </button>
             ))
           )}

@@ -164,6 +164,29 @@ export default function AdminPage() {
   const [selectedWithdrawalForReceipt, setSelectedWithdrawalForReceipt] = useState<Withdrawal | null>(null)
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const [receiptUploading, setReceiptUploading] = useState(false)
+  const [unreadChatsCount, setUnreadChatsCount] = useState(0)
+
+  // Fetch unread chats count
+  const fetchUnreadChatsCount = async () => {
+    try {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('auth_token='))
+        ?.split('=')[1]
+      if (!token) return
+
+      const res = await fetch('/api/admin/chat', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const totalUnread = data.conversations?.reduce((sum: number, conv: any) => sum + (conv.unread_count || 0), 0) || 0
+        setUnreadChatsCount(totalUnread)
+      }
+    } catch (error) {
+      console.error('Error fetching unread chats:', error)
+    }
+  }
 
   useEffect(() => {
     // Get token only on client side
@@ -210,6 +233,15 @@ export default function AdminPage() {
   useEffect(() => {
     if (token) {
       fetchConfigData()
+    }
+  }, [token])
+
+  // Fetch unread chats count on mount and periodically
+  useEffect(() => {
+    if (token) {
+      fetchUnreadChatsCount()
+      const interval = setInterval(fetchUnreadChatsCount, 15000) // cada 15 segundos
+      return () => clearInterval(interval)
     }
   }, [token])
 
@@ -1767,18 +1799,29 @@ export default function AdminPage() {
         <div className="flex justify-around items-center h-16 max-w-screen-xl mx-auto px-4">
           {adminTabs.map((item) => {
             const isActive = tab === item.key
+            const hasNotification = item.key === 'chat' && unreadChatsCount > 0
             return (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => setTab(item.key)}
-                className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${isActive
+                className={`flex flex-col items-center justify-center flex-1 h-full transition-colors relative ${isActive
                   ? 'text-gold'
                   : 'text-text-secondary hover:text-gold'
                   }`}
               >
-                <span className="text-2xl mb-1">{item.icon}</span>
-                <span className="text-xs font-medium">{item.label}</span>
+                <span className="text-2xl mb-1 relative">
+                  {item.icon}
+                  {hasNotification && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 text-[6px] text-white font-bold items-center justify-center">
+                        {unreadChatsCount > 9 ? '9+' : unreadChatsCount}
+                      </span>
+                    </span>
+                  )}
+                </span>
+                <span className={`text-xs font-medium ${hasNotification ? 'text-red-400' : ''}`}>{item.label}</span>
               </button>
             )
           })}
