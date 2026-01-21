@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma, withRetry } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth/middleware'
-import { clearDashboardCache } from '@/app/api/dashboard/route'
+import { clearDashboardCache } from '@/lib/cache'
 
 export async function GET(req: NextRequest) {
   const authResult = requireAdmin(req)
