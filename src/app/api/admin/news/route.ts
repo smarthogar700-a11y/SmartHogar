@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { prisma, withRetry } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth/middleware'
+import { clearDashboardCache } from '@/app/api/dashboard/route'
 
 export async function GET(req: NextRequest) {
   const authResult = requireAdmin(req)
@@ -9,9 +10,11 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const items = await prisma.announcement.findMany({
-      orderBy: { created_at: 'desc' },
-    })
+    const items = await withRetry(() =>
+      prisma.announcement.findMany({
+        orderBy: { created_at: 'desc' },
+      })
+    )
     return NextResponse.json(items)
   } catch (error) {
     console.error('Admin news error:', error)
@@ -37,13 +40,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const item = await prisma.announcement.create({
-      data: {
-        title,
-        body,
-        is_active: is_active !== undefined ? !!is_active : true,
-      },
-    })
+    const item = await withRetry(() =>
+      prisma.announcement.create({
+        data: {
+          title,
+          body,
+          is_active: is_active !== undefined ? !!is_active : true,
+        },
+      })
+    )
+
+    // Limpiar caché del dashboard para que las noticias se muestren inmediatamente
+    clearDashboardCache()
 
     return NextResponse.json(item)
   } catch (error) {
@@ -77,10 +85,15 @@ export async function PUT(req: NextRequest) {
     if (body !== undefined) updateData.body = body
     if (is_active !== undefined) updateData.is_active = is_active
 
-    const item = await prisma.announcement.update({
-      where: { id },
-      data: updateData,
-    })
+    const item = await withRetry(() =>
+      prisma.announcement.update({
+        where: { id },
+        data: updateData,
+      })
+    )
+
+    // Limpiar caché del dashboard
+    clearDashboardCache()
 
     return NextResponse.json(item)
   } catch (error) {
@@ -104,9 +117,14 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
     }
 
-    await prisma.announcement.delete({
-      where: { id },
-    })
+    await withRetry(() =>
+      prisma.announcement.delete({
+        where: { id },
+      })
+    )
+
+    // Limpiar caché del dashboard
+    clearDashboardCache()
 
     return NextResponse.json({ message: 'Noticia eliminada' })
   } catch (error) {

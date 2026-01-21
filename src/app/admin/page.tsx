@@ -821,12 +821,14 @@ export default function AdminPage() {
       })
 
       if (res.ok) {
+        showToast('Noticia publicada exitosamente', 'success')
         setNewsTitle('')
         setNewsBody('')
         setNewsActive(true)
         fetchNews()
       } else {
         const data = await res.json().catch(() => null)
+        showToast(data?.error || 'Error al crear noticia', 'error')
         setErrorMessage(data?.error || 'Error al crear noticia')
       }
     } catch (error) {

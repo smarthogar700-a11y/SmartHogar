@@ -3,7 +3,12 @@ import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/middleware'
 
 const dashboardCache = new Map<string, { expiresAt: number; payload: any }>()
-const DASHBOARD_TTL_MS = 8_000
+const DASHBOARD_TTL_MS = 3_000 // Reducido a 3 segundos para que las noticias se actualicen más rápido
+
+// Función para limpiar todo el caché (útil cuando se crean noticias)
+export function clearDashboardCache() {
+  dashboardCache.clear()
+}
 
 async function getNetworkCount(userId: string): Promise<number> {
   const result = await prisma.$queryRaw<{ count: bigint }[]>`
