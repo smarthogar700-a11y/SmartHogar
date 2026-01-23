@@ -300,6 +300,28 @@ body {
   box-shadow: 0 0 25px rgba(193, 232, 255, 0.7);
 }
 
+/* Animación de WhatsApp - pulso verde elegante */
+@keyframes whatsappPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(37, 211, 102, 0.7), 0 0 40px rgba(37, 211, 102, 0.3);
+  }
+}
+
+.animate-whatsapp {
+  animation: whatsappPulse 2s ease-in-out infinite;
+}
+
+.animate-whatsapp:hover {
+  animation: none;
+  transform: scale(1.08);
+  box-shadow: 0 0 30px rgba(37, 211, 102, 0.8), 0 0 50px rgba(37, 211, 102, 0.4);
+}
+
 /* Animación marquee infinita para reseñas */
 @keyframes marquee {
   0% {
