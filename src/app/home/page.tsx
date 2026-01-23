@@ -69,11 +69,115 @@ export default function HomePage() {
   const [missingToken, setMissingToken] = useState(false)
   const [showAnnouncements, setShowAnnouncements] = useState(false)
   const [showAboutUs, setShowAboutUs] = useState(false)
+  const [activating, setActivating] = useState(false)
+  const [canActivate, setCanActivate] = useState(false)
+  const [unlocksAt, setUnlocksAt] = useState<string | null>(null)
   const { showToast } = useToast()
 
   useEffect(() => {
     fetchDashboard()
+    checkActivationStatus()
   }, [])
+
+  const checkActivationStatus = async () => {
+    try {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('auth_token='))
+        ?.split('=')[1]
+      if (!token) return
+
+      const res = await fetch('/api/user/activate-daily-profit', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const result = await res.json()
+        setCanActivate(result.can_activate)
+        setUnlocksAt(result.unlocks_at)
+      }
+    } catch (error) {
+      console.error('Error checking activation status:', error)
+    }
+  }
+
+  const playMoneySound = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+
+      // Crear múltiples tonos para simular monedas
+      const playTone = (frequency: number, startTime: number, duration: number) => {
+        const oscillator = audioContext.createOscillator()
+        const gainNode = audioContext.createGain()
+
+        oscillator.connect(gainNode)
+        gainNode.connect(audioContext.destination)
+
+        oscillator.frequency.value = frequency
+        oscillator.type = 'sine'
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + startTime)
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + startTime + duration)
+
+        oscillator.start(audioContext.currentTime + startTime)
+        oscillator.stop(audioContext.currentTime + startTime + duration)
+      }
+
+      // Crear efecto de monedas cayendo
+      playTone(800, 0, 0.1)
+      playTone(1000, 0.05, 0.1)
+      playTone(1200, 0.1, 0.1)
+      playTone(900, 0.15, 0.15)
+      playTone(1100, 0.2, 0.2)
+    } catch (error) {
+      console.error('Error playing sound:', error)
+    }
+  }
+
+  const activateDailyProfit = async () => {
+    if (activating || !canActivate) return
+
+    setActivating(true)
+    try {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('auth_token='))
+        ?.split('=')[1]
+
+      if (!token) {
+        showToast('Sesión expirada', 'error')
+        return
+      }
+
+      const res = await fetch('/api/user/activate-daily-profit', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      const result = await res.json()
+
+      if (res.status === 423) {
+        // Bloqueado
+        showToast(result.message || 'Ya activaste tus ganancias hoy', 'error')
+        setCanActivate(false)
+        setUnlocksAt(result.unlocks_at)
+      } else if (res.ok) {
+        // Éxito - reproducir sonido
+        playMoneySound()
+        showToast(`¡Ganancias activadas! +Bs ${result.total_profit.toFixed(2)}`, 'success')
+        setCanActivate(false)
+        setUnlocksAt(result.unlocks_at)
+        // Recargar dashboard
+        setTimeout(() => fetchDashboard(), 1000)
+      } else {
+        showToast(result.error || 'Error al activar ganancias', 'error')
+      }
+    } catch (error) {
+      console.error('Error activating profit:', error)
+      showToast('Error al activar ganancias', 'error')
+    } finally {
+      setActivating(false)
+    }
+  }
 
   const fetchDashboard = async () => {
     setError(null)
@@ -303,9 +407,11 @@ export default function HomePage() {
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
-            <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
-              Ganancia Diaria
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light">
+                Ganancia Diaria
+              </h3>
+            </div>
             <p className="text-3xl font-bold text-gold gold-glow">
               Bs {data.daily_profit.toFixed(2)}
             </p>
@@ -327,6 +433,34 @@ export default function HomePage() {
                 <p className="text-xs text-text-secondary">
                   Acumulado: Bs {data.daily_profit_total.toFixed(2)}
                 </p>
+
+                {/* Botón de activar ganancias */}
+                <Button
+                  variant="primary"
+                  className="w-full mt-3 bg-gradient-to-r from-gold to-gold-bright hover:from-gold-bright hover:to-gold disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={activateDailyProfit}
+                  disabled={activating || !canActivate}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    {activating ? (
+                      <>🔄 Activando...</>
+                    ) : canActivate ? (
+                      <>💰 Activar mis ganancias diarias</>
+                    ) : (
+                      <>🔒 Disponible a la 1:00 AM</>
+                    )}
+                  </span>
+                </Button>
+                {!canActivate && unlocksAt && (
+                  <p className="text-[9px] text-center text-text-secondary mt-1">
+                    Próxima activación: {new Date(unlocksAt).toLocaleString('es-ES', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                )}
               </div>
             ) : (
               <div className="mt-2 space-y-1">
