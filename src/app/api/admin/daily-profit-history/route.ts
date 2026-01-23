@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
               },
             },
             orderBy: {
-              created_at: 'desc',
+              created_at: 'asc',
             },
           })
         )
@@ -97,7 +97,31 @@ export async function GET(req: NextRequest) {
           0
         )
 
-        // Obtener acumulado total histórico
+        // Obtener saldo total del wallet (todas las transacciones)
+        const walletBalance = await withRetry(() =>
+          prisma.walletLedger.aggregate({
+            where: {
+              user_id: user.id,
+            },
+            _sum: {
+              amount_bs: true,
+            },
+          })
+        )
+
+        const currentBalance = walletBalance._sum.amount_bs || 0
+
+        // Calcular saldo antes de activar hoy (balance actual - ganancias de hoy)
+        const balanceBefore = currentBalance - profitToday
+
+        // Detalle de cada activación de hoy
+        const activationsDetail = todayActivations.map((entry) => ({
+          package_name: (entry.description || 'VIP').replace('Ganancia diaria - ', ''),
+          amount: entry.amount_bs,
+          activated_at: entry.created_at,
+        }))
+
+        // Obtener acumulado total histórico de daily profits
         const allProfits = await withRetry(() =>
           prisma.walletLedger.aggregate({
             where: {
@@ -114,7 +138,7 @@ export async function GET(req: NextRequest) {
 
         // Hora de activación (primera activación de hoy)
         const firstActivationToday = todayActivations.length > 0
-          ? todayActivations[todayActivations.length - 1].created_at
+          ? todayActivations[0].created_at
           : null
 
         // VIPs activos
@@ -129,7 +153,10 @@ export async function GET(req: NextRequest) {
           full_name: user.full_name,
           activated_today: todayActivations.length > 0,
           activation_time: firstActivationToday,
+          balance_before: balanceBefore,
+          balance_after: currentBalance,
           profit_today: profitToday,
+          activations_detail: activationsDetail,
           total_accumulated: totalAccumulated,
           active_vips: activeVIPs,
         }

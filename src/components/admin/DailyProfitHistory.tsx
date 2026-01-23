@@ -9,13 +9,22 @@ interface VIPPackage {
   daily_profit: number
 }
 
+interface ActivationDetail {
+  package_name: string
+  amount: number
+  activated_at: string
+}
+
 interface UserData {
   user_id: string
   username: string
   full_name: string
   activated_today: boolean
   activation_time: string | null
+  balance_before: number
+  balance_after: number
   profit_today: number
+  activations_detail: ActivationDetail[]
   total_accumulated: number
   active_vips: VIPPackage[]
 }
@@ -269,29 +278,74 @@ export default function DailyProfitHistory() {
                   )}
                 </div>
 
-                {/* VIPs activos */}
-                <div>
-                  <p className="text-xs text-text-secondary uppercase mb-2">
-                    📦 VIPs Activos:
-                  </p>
-                  <div className="space-y-1">
-                    {user.active_vips.map((vip, idx) => (
-                      <div
-                        key={idx}
-                        className="flex justify-between items-center bg-dark-card rounded px-3 py-1.5 text-sm"
-                      >
-                        <span className="text-blue-bright">{vip.package_name}</span>
-                        <span className="text-gold font-semibold">
-                          Bs {vip.daily_profit.toFixed(2)}/día
-                        </span>
+                {/* Saldo y ganancias */}
+                {user.activated_today && (
+                  <div className="bg-dark-card rounded-lg p-3 space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-text-secondary">💰 Saldo anterior:</span>
+                      <span className="text-text-primary font-semibold">
+                        Bs {user.balance_before.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <div className="border-t border-white/10 pt-2">
+                      <p className="text-xs text-gold uppercase mb-2">
+                        ✨ Ganancias activadas hoy:
+                      </p>
+                      <div className="space-y-1">
+                        {user.activations_detail.map((activation, idx) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between items-center text-sm pl-2"
+                          >
+                            <span className="text-blue-bright text-xs">
+                              • {activation.package_name}
+                            </span>
+                            <span className="text-green-400 font-semibold">
+                              +Bs {activation.amount.toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+
+                    <div className="border-t border-white/10 pt-2 flex justify-between items-center text-sm">
+                      <span className="text-text-secondary">💵 Saldo actual:</span>
+                      <span className="text-gold font-bold text-base">
+                        Bs {user.balance_after.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* VIPs activos (para los que no activaron) */}
+                {!user.activated_today && (
+                  <div>
+                    <p className="text-xs text-text-secondary uppercase mb-2">
+                      📦 VIPs Activos (sin activar):
+                    </p>
+                    <div className="space-y-1">
+                      {user.active_vips.map((vip, idx) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between items-center bg-dark-card rounded px-3 py-1.5 text-sm"
+                        >
+                          <span className="text-blue-bright">{vip.package_name}</span>
+                          <span className="text-gold font-semibold">
+                            Bs {vip.daily_profit.toFixed(2)}/día
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-xs text-text-secondary mt-2">
+                      💰 Saldo actual: Bs {user.balance_after.toFixed(2)}
+                    </div>
+                  </div>
+                )}
 
                 {/* Acumulado total */}
-                <div className="text-xs text-text-secondary text-right">
-                  📊 Acumulado total: Bs {user.total_accumulated.toFixed(2)}
+                <div className="text-xs text-text-secondary text-right border-t border-white/10 pt-2">
+                  📊 Acumulado histórico: Bs {user.total_accumulated.toFixed(2)}
                 </div>
               </div>
             </Card>
