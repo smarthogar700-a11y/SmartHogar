@@ -170,7 +170,7 @@ export default function DailyProfitHistory() {
               </p>
             </div>
             <div className="bg-gold/10 rounded-lg p-3 text-center border border-gold/30">
-              <p className="text-xs text-text-secondary uppercase">💰 Ganado Hoy</p>
+              <p className="text-xs text-text-secondary uppercase">💰 Total Abonado Hoy</p>
               <p className="text-xl font-bold text-gold">
                 Bs {data.summary.total_profit_today.toFixed(2)}
               </p>
