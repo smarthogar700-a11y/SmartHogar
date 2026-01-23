@@ -274,7 +274,7 @@ export default function HomePage() {
                 <Button
                   variant="outline"
                   className="animate-whatsapp border-[#25D366] bg-gradient-to-r from-[#25D366]/20 to-[#128C7E]/20 hover:from-[#25D366]/40 hover:to-[#128C7E]/40 text-white transition-all duration-300 py-2"
-                  onClick={() => window.open('https://wa.me/channel/', '_blank')}
+                  onClick={() => window.open('https://whatsapp.com/channel/0029VbBz3tyJf05fba9YPP3A', '_blank')}
                 >
                   <span className="flex flex-col items-center justify-center gap-1">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -286,7 +286,7 @@ export default function HomePage() {
                 <Button
                   variant="outline"
                   className="animate-whatsapp border-[#25D366] bg-gradient-to-r from-[#128C7E]/20 to-[#25D366]/20 hover:from-[#128C7E]/40 hover:to-[#25D366]/40 text-white transition-all duration-300 py-2"
-                  onClick={() => window.open('https://chat.whatsapp.com/', '_blank')}
+                  onClick={() => window.open('https://chat.whatsapp.com/GwvmuzwVtWH4n4RS4S2OOu', '_blank')}
                 >
                   <span className="flex flex-col items-center justify-center gap-1">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
