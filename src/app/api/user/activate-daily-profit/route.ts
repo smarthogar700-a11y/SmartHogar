@@ -103,11 +103,17 @@ export async function POST(req: NextRequest) {
     let totalProfit = 0
     const processedPackages: string[] = []
 
-    for (const purchase of user.purchases) {
-      const effectiveProfit = purchase.vip_package?.daily_profit_bs ?? purchase.daily_profit_bs
+    // Procesar todas las compras en una sola transacción atómica
+    await withRetry(() =>
+      prisma.$transaction(async (tx) => {
+        for (const purchase of user.purchases) {
+          const effectiveProfit = purchase.vip_package?.daily_profit_bs ?? purchase.daily_profit_bs
 
-      await withRetry(() =>
-        prisma.$transaction(async (tx) => {
+          // Validar que el profit sea válido
+          if (!effectiveProfit || effectiveProfit <= 0) {
+            throw new Error(`Profit inválido para el paquete ${purchase.vip_package?.name || 'VIP'}`)
+          }
+
           // Crear registro en wallet
           await tx.walletLedger.create({
             data: {
@@ -127,12 +133,12 @@ export async function POST(req: NextRequest) {
               daily_profit_bs: effectiveProfit, // Sincronizar con el porcentaje actual
             },
           })
-        })
-      )
 
-      totalProfit += effectiveProfit
-      processedPackages.push(purchase.vip_package?.name || 'VIP')
-    }
+          totalProfit += effectiveProfit
+          processedPackages.push(purchase.vip_package?.name || 'VIP')
+        }
+      })
+    )
 
     // Calcular hora de desbloqueo (próxima 1:00 AM)
     const unlockTime = new Date(now)

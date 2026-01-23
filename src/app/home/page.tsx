@@ -104,8 +104,8 @@ export default function HomePage() {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
 
-      // Crear múltiples tonos para simular monedas
-      const playTone = (frequency: number, startTime: number, duration: number) => {
+      // Helper para crear tonos
+      const playTone = (frequency: number, startTime: number, duration: number, volume: number = 0.3, type: OscillatorType = 'sine') => {
         const oscillator = audioContext.createOscillator()
         const gainNode = audioContext.createGain()
 
@@ -113,21 +113,35 @@ export default function HomePage() {
         gainNode.connect(audioContext.destination)
 
         oscillator.frequency.value = frequency
-        oscillator.type = 'sine'
+        oscillator.type = type
 
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + startTime)
+        gainNode.gain.setValueAtTime(volume, audioContext.currentTime + startTime)
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + startTime + duration)
 
         oscillator.start(audioContext.currentTime + startTime)
         oscillator.stop(audioContext.currentTime + startTime + duration)
       }
 
-      // Crear efecto de monedas cayendo
-      playTone(800, 0, 0.1)
-      playTone(1000, 0.05, 0.1)
-      playTone(1200, 0.1, 0.1)
-      playTone(900, 0.15, 0.15)
-      playTone(1100, 0.2, 0.2)
+      // Sonido de caja registradora "Cha-ching"
+
+      // "Cha" - Campana/Bell agudo
+      playTone(1800, 0, 0.08, 0.4, 'sine')
+      playTone(2200, 0.02, 0.08, 0.3, 'sine')
+
+      // Click mecánico inicial
+      playTone(150, 0.08, 0.03, 0.2, 'square')
+
+      // "Ching" - Drawer opening (cajón abriéndose)
+      playTone(600, 0.12, 0.15, 0.35, 'triangle')
+      playTone(400, 0.14, 0.2, 0.3, 'sine')
+      playTone(300, 0.16, 0.25, 0.25, 'sine')
+
+      // Resonancia metálica
+      playTone(1200, 0.15, 0.3, 0.15, 'sine')
+      playTone(800, 0.18, 0.35, 0.12, 'sine')
+
+      // Click mecánico final
+      playTone(120, 0.35, 0.05, 0.18, 'square')
     } catch (error) {
       console.error('Error playing sound:', error)
     }
@@ -145,6 +159,7 @@ export default function HomePage() {
 
       if (!token) {
         showToast('Sesión expirada', 'error')
+        setActivating(false)
         return
       }
 
@@ -166,14 +181,21 @@ export default function HomePage() {
         showToast(`¡Ganancias activadas! +Bs ${result.total_profit.toFixed(2)}`, 'success')
         setCanActivate(false)
         setUnlocksAt(result.unlocks_at)
-        // Recargar dashboard
-        setTimeout(() => fetchDashboard(), 1000)
+        // Recargar dashboard y estado de activación
+        setTimeout(() => {
+          fetchDashboard()
+          checkActivationStatus()
+        }, 1000)
       } else {
+        // Error - refrescar estado de activación para asegurar consistencia
         showToast(result.error || 'Error al activar ganancias', 'error')
+        setTimeout(() => checkActivationStatus(), 500)
       }
     } catch (error) {
       console.error('Error activating profit:', error)
       showToast('Error al activar ganancias', 'error')
+      // Refrescar estado en caso de error de red
+      setTimeout(() => checkActivationStatus(), 500)
     } finally {
       setActivating(false)
     }
