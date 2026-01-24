@@ -8,6 +8,32 @@ import StarfieldBackground from '@/components/ui/StarfieldBackground'
 export const metadata: Metadata = {
   title: 'SmartHogar',
   description: 'Plataforma SmartHogar Premium',
+  icons: {
+    icon: [
+      {
+        url: 'https://i.ibb.co/35y8M1HR/vecteezy-online-store-with-smartphone-shop-concept-illustration-for-8480599.png',
+        type: 'image/png',
+      },
+    ],
+    apple: [
+      {
+        url: 'https://i.ibb.co/35y8M1HR/vecteezy-online-store-with-smartphone-shop-concept-illustration-for-8480599.png',
+        type: 'image/png',
+      },
+    ],
+  },
+  manifest: '/manifest.json',
+  themeColor: '#1a1a2e',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'SmartHogar',
+  },
 }
 
 // Iniciar cron jobs solo si esta habilitado por entorno

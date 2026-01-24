@@ -1362,7 +1362,7 @@ export default function AdminPage() {
                                 {entry.earnings.referralBonus.byLevel.map((bonus, idx) => (
                                   <div key={idx} className="flex items-center justify-between text-xs bg-dark-bg rounded px-2 py-1">
                                     <span className="text-text-secondary">
-                                      <span className="font-bold text-gold">Nivel {bonus.level}</span>
+                                      <span className="font-bold text-gold">Bonos de patrocinados Nivel {bonus.level}</span>
                                     </span>
                                     <span className="font-bold text-gold">
                                       Bs {bonus.amount.toFixed(2)}

@@ -34,6 +34,14 @@ interface DashboardData {
     level: number
     amount_bs: number
   }[]
+  adjustments: {
+    items: Array<{
+      amount: number
+      type: 'ABONADO' | 'DESCUENTO'
+      description: string
+    }>
+    total: number
+  }
   total_earnings: number
   network_count: number
   direct_referrals: number
@@ -517,6 +525,33 @@ export default function HomePage() {
               </div>
             )}
           </Card>
+
+          {/* Ajustes Manuales */}
+          {data.adjustments && data.adjustments.items.length > 0 && (
+            <Card className="md:col-span-2">
+              <h3 className="text-xs text-text-secondary uppercase tracking-wider font-light mb-2">
+                Ajustes desde Panel
+              </h3>
+              <p className={`text-2xl font-bold ${data.adjustments.total >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {data.adjustments.total >= 0 ? '+' : ''}Bs {data.adjustments.total.toFixed(2)}
+              </p>
+              <div className="mt-2 space-y-1">
+                {data.adjustments.items.map((adj, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-dark-card bg-opacity-50 rounded px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${adj.type === 'ABONADO' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                        {adj.type}
+                      </span>
+                      <span className="text-xs text-text-secondary">{adj.description}</span>
+                    </div>
+                    <span className={`text-sm font-bold ${adj.amount >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {adj.amount >= 0 ? '+' : ''}Bs {adj.amount.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
 
           <Card className="md:col-span-2">
             <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">

@@ -83,44 +83,41 @@ export async function GET(req: NextRequest) {
     }
 
     // Obtener desglose detallado de ganancias por usuario
+    // Optimización: Una sola consulta para todos los ledgers en lugar de 3 por usuario
     const earningsBreakdown = userIds.length
-      ? await Promise.all(
-          userIds.map(async (userId) => {
-            // 1. Ganancias diarias (DAILY_PROFIT)
-            const dailyProfits = await prisma.walletLedger.findMany({
-              where: {
-                user_id: userId,
-                type: 'DAILY_PROFIT',
-              },
-              select: {
-                amount_bs: true,
-                created_at: true,
-              },
-            })
+      ? await (async () => {
+          // Obtener todos los ledgers de todos los usuarios en una sola consulta
+          const allLedgers = await prisma.walletLedger.findMany({
+            where: {
+              user_id: { in: userIds },
+              type: { in: ['DAILY_PROFIT', 'ADJUSTMENT', 'REFERRAL_BONUS'] },
+            },
+            select: {
+              user_id: true,
+              type: true,
+              amount_bs: true,
+              description: true,
+              created_at: true,
+            },
+          })
 
-            // 2. Ajustes manuales (ADJUSTMENT)
-            const manualAdjusts = await prisma.walletLedger.findMany({
-              where: {
-                user_id: userId,
-                type: 'ADJUSTMENT',
-              },
-              select: {
-                amount_bs: true,
-                description: true,
-              },
-            })
+          // Agrupar por usuario
+          const ledgersByUser = new Map<string, typeof allLedgers>()
+          allLedgers.forEach(ledger => {
+            if (!ledgersByUser.has(ledger.user_id)) {
+              ledgersByUser.set(ledger.user_id, [])
+            }
+            ledgersByUser.get(ledger.user_id)!.push(ledger)
+          })
 
-            // 3. Bonos de patrocinio por nivel (REFERRAL_BONUS)
-            const referralBonuses = await prisma.walletLedger.findMany({
-              where: {
-                user_id: userId,
-                type: 'REFERRAL_BONUS',
-              },
-              select: {
-                amount_bs: true,
-                description: true,
-              },
-            })
+          // Procesar cada usuario
+          return userIds.map(userId => {
+            const userLedgers = ledgersByUser.get(userId) || []
+
+            // Filtrar por tipo
+            const dailyProfits = userLedgers.filter(l => l.type === 'DAILY_PROFIT')
+            const manualAdjusts = userLedgers.filter(l => l.type === 'ADJUSTMENT')
+            const referralBonuses = userLedgers.filter(l => l.type === 'REFERRAL_BONUS')
 
             // Calcular total de ganancias diarias
             const totalDailyProfit = dailyProfits.reduce((sum, p) => sum + p.amount_bs, 0)
@@ -129,7 +126,7 @@ export async function GET(req: NextRequest) {
             // Separar ajustes en abonos y descuentos
             const adjustments = manualAdjusts.map(adj => ({
               amount: adj.amount_bs,
-              type: adj.amount_bs >= 0 ? 'ABONADO' : 'DESCUENTO',
+              type: adj.amount_bs >= 0 ? 'ABONADO' as const : 'DESCUENTO' as const,
               description: adj.description || 'Ajuste manual',
             }))
             const totalAdjustments = manualAdjusts.reduce((sum, a) => sum + a.amount_bs, 0)
@@ -137,8 +134,8 @@ export async function GET(req: NextRequest) {
             // Agrupar bonos de patrocinio por nivel
             const bonusByLevel = new Map<string, number>()
             referralBonuses.forEach(bonus => {
-              // Extraer nivel de la descripción (ej: "Bono Nivel 1 - ...")
-              const levelMatch = bonus.description?.match(/Nivel (\d+)/)
+              // Extraer nivel de la descripción (ej: "Bono de referido nivel 1 (10%)")
+              const levelMatch = bonus.description?.match(/nivel (\d+)/i)
               const level = levelMatch ? levelMatch[1] : 'Desconocido'
               bonusByLevel.set(level, (bonusByLevel.get(level) || 0) + bonus.amount_bs)
             })
@@ -169,7 +166,7 @@ export async function GET(req: NextRequest) {
               totalEarnings,
             }
           })
-        )
+        })()
       : []
 
     const earningsMap = new Map(

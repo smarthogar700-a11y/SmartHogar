@@ -180,6 +180,32 @@ export async function GET(req: NextRequest) {
       console.error('Dashboard total earnings error:', error)
     }
 
+    let adjustments: { amount: number; type: 'ABONADO' | 'DESCUENTO'; description: string }[] = []
+    let adjustmentsTotal = 0
+    try {
+      const adjustmentLedgers = await prisma.walletLedger.findMany({
+        where: {
+          user_id: authResult.user.userId,
+          type: 'ADJUSTMENT',
+        },
+        select: {
+          amount_bs: true,
+          description: true,
+        },
+        orderBy: { created_at: 'desc' },
+      })
+
+      adjustments = adjustmentLedgers.map((adj) => ({
+        amount: adj.amount_bs,
+        type: adj.amount_bs >= 0 ? 'ABONADO' as const : 'DESCUENTO' as const,
+        description: adj.description || 'Ajuste manual',
+      }))
+
+      adjustmentsTotal = adjustmentLedgers.reduce((sum, adj) => sum + adj.amount_bs, 0)
+    } catch (error) {
+      console.error('Dashboard adjustments error:', error)
+    }
+
     let networkCount = 0
     try {
       networkCount = await getNetworkCount(authResult.user.userId)
@@ -268,6 +294,10 @@ export async function GET(req: NextRequest) {
       referral_bonus: referralBonus,
       referral_bonus_total: referralBonusTotal,
       referral_bonus_levels: referralBonusLevels,
+      adjustments: {
+        items: adjustments,
+        total: adjustmentsTotal,
+      },
       total_earnings: totalEarningsValue,
       network_count: networkCount,
       direct_referrals: directReferrals,
