@@ -72,6 +72,7 @@ export default function HomePage() {
   const [activating, setActivating] = useState(false)
   const [canActivate, setCanActivate] = useState(false)
   const [unlocksAt, setUnlocksAt] = useState<string | null>(null)
+  const [showConfetti, setShowConfetti] = useState(false)
   const { showToast } = useToast()
 
   useEffect(() => {
