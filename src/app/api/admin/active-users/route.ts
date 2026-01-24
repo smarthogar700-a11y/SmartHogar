@@ -82,26 +82,114 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const totals = userIds.length
-      ? await prisma.walletLedger.groupBy({
-          by: ['user_id'],
-          where: {
-            user_id: { in: userIds },
-            type: { in: ['DAILY_PROFIT', 'REFERRAL_BONUS'] },
-          },
-          _sum: { amount_bs: true },
-        })
+    // Obtener desglose detallado de ganancias por usuario
+    const earningsBreakdown = userIds.length
+      ? await Promise.all(
+          userIds.map(async (userId) => {
+            // 1. Ganancias diarias (DAILY_PROFIT)
+            const dailyProfits = await prisma.walletLedger.findMany({
+              where: {
+                user_id: userId,
+                type: 'DAILY_PROFIT',
+              },
+              select: {
+                amount_bs: true,
+                created_at: true,
+              },
+            })
+
+            // 2. Ajustes manuales (ADJUSTMENT)
+            const manualAdjusts = await prisma.walletLedger.findMany({
+              where: {
+                user_id: userId,
+                type: 'ADJUSTMENT',
+              },
+              select: {
+                amount_bs: true,
+                description: true,
+              },
+            })
+
+            // 3. Bonos de patrocinio por nivel (REFERRAL_BONUS)
+            const referralBonuses = await prisma.walletLedger.findMany({
+              where: {
+                user_id: userId,
+                type: 'REFERRAL_BONUS',
+              },
+              select: {
+                amount_bs: true,
+                description: true,
+              },
+            })
+
+            // Calcular total de ganancias diarias
+            const totalDailyProfit = dailyProfits.reduce((sum, p) => sum + p.amount_bs, 0)
+            const daysWithProfit = dailyProfits.length
+
+            // Separar ajustes en abonos y descuentos
+            const adjustments = manualAdjusts.map(adj => ({
+              amount: adj.amount_bs,
+              type: adj.amount_bs >= 0 ? 'ABONADO' : 'DESCUENTO',
+              description: adj.description || 'Ajuste manual',
+            }))
+            const totalAdjustments = manualAdjusts.reduce((sum, a) => sum + a.amount_bs, 0)
+
+            // Agrupar bonos de patrocinio por nivel
+            const bonusByLevel = new Map<string, number>()
+            referralBonuses.forEach(bonus => {
+              // Extraer nivel de la descripción (ej: "Bono Nivel 1 - ...")
+              const levelMatch = bonus.description?.match(/Nivel (\d+)/)
+              const level = levelMatch ? levelMatch[1] : 'Desconocido'
+              bonusByLevel.set(level, (bonusByLevel.get(level) || 0) + bonus.amount_bs)
+            })
+
+            const referralBonusByLevel = Array.from(bonusByLevel.entries()).map(([level, amount]) => ({
+              level,
+              amount,
+            }))
+            const totalReferralBonus = referralBonuses.reduce((sum, b) => sum + b.amount_bs, 0)
+
+            // Total general
+            const totalEarnings = totalDailyProfit + totalAdjustments + totalReferralBonus
+
+            return {
+              userId,
+              dailyProfit: {
+                total: totalDailyProfit,
+                days: daysWithProfit,
+              },
+              adjustments: {
+                items: adjustments,
+                total: totalAdjustments,
+              },
+              referralBonus: {
+                byLevel: referralBonusByLevel,
+                total: totalReferralBonus,
+              },
+              totalEarnings,
+            }
+          })
+        )
       : []
 
-    const totalsMap = new Map(
-      totals.map((t) => [t.user_id, t._sum.amount_bs || 0])
+    const earningsMap = new Map(
+      earningsBreakdown.map((e) => [e.userId, e])
     )
 
-    const payload = Array.from(byUser.entries()).map(([userId, entry]) => ({
-      user: entry.user,
-      active_packages: entry.packages,
-      total_earnings_bs: totalsMap.get(userId) || 0,
-    }))
+    const payload = Array.from(byUser.entries()).map(([userId, entry]) => {
+      const earnings = earningsMap.get(userId) || {
+        dailyProfit: { total: 0, days: 0 },
+        adjustments: { items: [], total: 0 },
+        referralBonus: { byLevel: [], total: 0 },
+        totalEarnings: 0,
+      }
+
+      return {
+        user: entry.user,
+        active_packages: entry.packages,
+        earnings,
+      }
+    })
 
     return NextResponse.json({
       users: payload,

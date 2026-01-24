@@ -72,7 +72,28 @@ interface ActiveUser {
     created_at: string | null
     activated_at: string | null
   }[]
-  total_earnings_bs: number
+  earnings: {
+    dailyProfit: {
+      total: number
+      days: number
+    }
+    adjustments: {
+      items: Array<{
+        amount: number
+        type: 'ABONADO' | 'DESCUENTO'
+        description: string
+      }>
+      total: number
+    }
+    referralBonus: {
+      byLevel: Array<{
+        level: string
+        amount: number
+      }>
+      total: number
+    }
+    totalEarnings: number
+  }
 }
 
 interface Announcement {
@@ -1240,61 +1261,117 @@ export default function AdminPage() {
                   </Card>
                 ) : (
                   filteredActiveUsers.map((entry) => (
-                    <Card key={entry.user.username} glassEffect className="p-2">
-                      <div className="space-y-2 text-[9px]">
+                    <Card key={entry.user.username} glassEffect>
+                      <div className="space-y-4">
+                        {/* Header del usuario */}
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="text-xs font-bold text-gold">
+                            <h3 className="text-lg font-bold text-gold">
                               {entry.user.full_name}
                             </h3>
-                            <p className="text-text-secondary">@{entry.user.username}</p>
-                            <p className="text-text-secondary">{entry.user.email}</p>
+                            <p className="text-sm text-text-secondary">@{entry.user.username}</p>
+                            <p className="text-xs text-text-secondary">{entry.user.email}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-text-secondary uppercase">Total Ganado</p>
+                            <p className="text-2xl font-bold text-gold">
+                              Bs {entry.earnings.totalEarnings.toFixed(2)}
+                            </p>
                           </div>
                         </div>
 
-                        {/* Paquetes VIP con fechas */}
-                        <div className="space-y-1">
-                          {entry.active_packages.map((pkg, idx) => (
-                            <div key={idx} className="bg-dark-card bg-opacity-50 rounded p-1.5 space-y-0.5">
-                              <div className="flex items-center gap-1">
-                                <span className="text-[10px] font-bold text-gold">{pkg.name}</span>
-                                <span className="text-[8px] text-text-secondary">· Nivel {pkg.level}</span>
+                        {/* Paquetes VIP Activos */}
+                        <div className="bg-dark-card bg-opacity-50 rounded-lg p-3">
+                          <p className="text-xs text-gold font-bold uppercase mb-2">📦 Paquetes VIP Activos</p>
+                          <div className="space-y-2">
+                            {entry.active_packages.map((pkg, idx) => (
+                              <div key={idx} className="bg-dark-bg rounded p-2 space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-bold text-blue-bright">{pkg.name}</span>
+                                  <span className="text-xs text-text-secondary bg-gold/20 px-2 py-0.5 rounded">Nivel {pkg.level}</span>
+                                </div>
+                                <div className="text-xs text-text-secondary grid grid-cols-2 gap-1">
+                                  <div>
+                                    <span className="opacity-70">Solicitado:</span> {pkg.created_at
+                                      ? new Date(pkg.created_at).toLocaleDateString('es-ES')
+                                      : 'N/A'}
+                                  </div>
+                                  <div>
+                                    <span className="opacity-70">Activado:</span> {pkg.activated_at
+                                      ? new Date(pkg.activated_at).toLocaleDateString('es-ES')
+                                      : 'N/A'}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-[7px] text-text-secondary">
-                                <div>
-                                  Solicitado: {pkg.created_at
-                                    ? new Date(pkg.created_at).toLocaleString('es-ES', {
-                                      day: '2-digit',
-                                      month: '2-digit',
-                                      year: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })
-                                    : 'N/A'}
-                                </div>
-                                <div>
-                                  Activado: {pkg.activated_at
-                                    ? new Date(pkg.activated_at).toLocaleString('es-ES', {
-                                      day: '2-digit',
-                                      month: '2-digit',
-                                      year: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })
-                                    : 'N/A'}
-                                </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Desglose de Ganancias */}
+                        <div className="space-y-3">
+                          {/* 1. Ganancias Diarias */}
+                          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs font-bold text-green-400 uppercase">💰 Ganancias Diarias</p>
+                              <p className="text-lg font-bold text-green-400">
+                                Bs {entry.earnings.dailyProfit.total.toFixed(2)}
+                              </p>
+                            </div>
+                            <p className="text-xs text-text-secondary">
+                              🗓️ {entry.earnings.dailyProfit.days} {entry.earnings.dailyProfit.days === 1 ? 'día activado' : 'días activados'}
+                            </p>
+                          </div>
+
+                          {/* 2. Ajustes Manuales */}
+                          {entry.earnings.adjustments.items.length > 0 && (
+                            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-xs font-bold text-blue-bright uppercase">🛠️ Ajustes desde Panel</p>
+                                <p className={`text-lg font-bold ${entry.earnings.adjustments.total >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                  {entry.earnings.adjustments.total >= 0 ? '+' : ''}Bs {entry.earnings.adjustments.total.toFixed(2)}
+                                </p>
+                              </div>
+                              <div className="space-y-1">
+                                {entry.earnings.adjustments.items.map((adj, idx) => (
+                                  <div key={idx} className="flex items-center justify-between text-xs bg-dark-bg rounded px-2 py-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${adj.type === 'ABONADO' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        {adj.type}
+                                      </span>
+                                      <span className="text-text-secondary">{adj.description}</span>
+                                    </div>
+                                    <span className={`font-bold ${adj.amount >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                      {adj.amount >= 0 ? '+' : ''}Bs {adj.amount.toFixed(2)}
+                                    </span>
+                                  </div>
+                                ))}
                               </div>
                             </div>
-                          ))}
-                        </div>
+                          )}
 
-                        <div className="border-t border-gold border-opacity-20 pt-1">
-                          <div className="flex justify-between">
-                            <span className="text-text-secondary">Ganancias totales:</span>
-                            <span className="font-bold text-gold-bright">
-                              Bs {entry.total_earnings_bs.toFixed(2)}
-                            </span>
-                          </div>
+                          {/* 3. Bonos de Patrocinio */}
+                          {entry.earnings.referralBonus.byLevel.length > 0 && (
+                            <div className="bg-gold/10 border border-gold/30 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-xs font-bold text-gold uppercase">🤝 Ganancias de Patrocinio</p>
+                                <p className="text-lg font-bold text-gold">
+                                  Bs {entry.earnings.referralBonus.total.toFixed(2)}
+                                </p>
+                              </div>
+                              <div className="space-y-1">
+                                {entry.earnings.referralBonus.byLevel.map((bonus, idx) => (
+                                  <div key={idx} className="flex items-center justify-between text-xs bg-dark-bg rounded px-2 py-1">
+                                    <span className="text-text-secondary">
+                                      <span className="font-bold text-gold">Nivel {bonus.level}</span>
+                                    </span>
+                                    <span className="font-bold text-gold">
+                                      Bs {bonus.amount.toFixed(2)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </Card>
