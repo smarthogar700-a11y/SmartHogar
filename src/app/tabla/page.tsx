@@ -51,13 +51,16 @@ export default function TablaPage() {
     fetchData()
   }, [])
 
-  const calculatePercentage = (profit: number, investment: number) => {
-    if (!investment || investment <= 0) return '0.00'
-    return ((profit / investment) * 100).toFixed(2)
-  }
-
   const calculateMonthly = (profit: number) => {
     return (profit * 30).toFixed(2)
+  }
+
+  const calculateYearly = (profit: number) => {
+    return (profit * 365).toFixed(2)
+  }
+
+  const calculateTwoYears = (profit: number) => {
+    return (profit * 730).toFixed(2)
   }
 
   if (loading) {
@@ -70,81 +73,165 @@ export default function TablaPage() {
 
   return (
     <div className="min-h-screen pb-20">
-      <div className="max-w-screen-xl mx-auto p-6 space-y-6">
+      <div className="max-w-screen-xl mx-auto p-4 space-y-4">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gold gold-glow">Tabla de Ganancias</h1>
-          <p className="mt-2 text-text-secondary uppercase tracking-wider text-sm font-light">
+          <h1 className="text-3xl font-bold text-gold gold-glow">Tabla de Ganancias</h1>
+          <p className="mt-2 text-text-secondary uppercase tracking-wider text-xs font-light">
             Resumen de paquetes y bonos
           </p>
         </div>
 
         <Card glassEffect className="overflow-x-auto">
-          <div className="p-4">
-            <h2 className="text-2xl font-bold text-gold mb-2">Tabla de Paquetes</h2>
-            <p className="text-sm text-text-secondary mb-4">
-              Inversión, ganancia diaria, porcentaje y ganancia mensual estimada.
+          <div className="p-3">
+            <h2 className="text-lg font-bold text-gold mb-2">Tabla de Paquetes</h2>
+            <p className="text-xs text-text-secondary mb-3">
+              Proyección de ganancias diarias, mensuales, anuales y bienales.
             </p>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gold border-opacity-30">
-                  <th className="text-left py-2 px-3 text-gold uppercase">Paquete</th>
-                  <th className="text-left py-2 px-3 text-gold uppercase">Inversión</th>
-                  <th className="text-left py-2 px-3 text-gold uppercase">Diario</th>
-                  <th className="text-left py-2 px-3 text-gold uppercase">% Diario</th>
-                  <th className="text-left py-2 px-3 text-gold uppercase">Mensual</th>
-                </tr>
-              </thead>
-              <tbody>
-                {packages.map((pkg) => (
-                  <tr key={`table-${pkg.id}`} className="border-b border-gold border-opacity-10">
-                    <td className="py-2 px-3 text-text-primary">{pkg.name}</td>
-                    <td className="py-2 px-3 text-text-secondary">Bs {pkg.investment_bs}</td>
-                    <td className="py-2 px-3 text-text-secondary">Bs {pkg.daily_profit_bs}</td>
-                    <td className="py-2 px-3 text-text-secondary">
-                      {calculatePercentage(pkg.daily_profit_bs, pkg.investment_bs)}%
-                    </td>
-                    <td className="py-2 px-3 text-gold-bright">
-                      Bs {calculateMonthly(pkg.daily_profit_bs)}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gold border-opacity-30">
+                    <th className="text-left py-1.5 px-2 text-gold uppercase text-[10px]">Paquete</th>
+                    <th className="text-right py-1.5 px-2 text-gold uppercase text-[10px]">Inversión</th>
+                    <th className="text-right py-1.5 px-2 text-gold uppercase text-[10px]">Diario</th>
+                    <th className="text-right py-1.5 px-2 text-gold uppercase text-[10px]">Mensual</th>
+                    <th className="text-right py-1.5 px-2 text-gold uppercase text-[10px]">1 Año</th>
+                    <th className="text-right py-1.5 px-2 text-gold uppercase text-[10px]">2 Años</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {packages.map((pkg) => (
+                    <tr key={`table-${pkg.id}`} className="border-b border-gold border-opacity-10">
+                      <td className="py-1.5 px-2 text-text-primary font-medium">{pkg.name}</td>
+                      <td className="py-1.5 px-2 text-text-secondary text-right">Bs {pkg.investment_bs.toFixed(0)}</td>
+                      <td className="py-1.5 px-2 text-text-secondary text-right">Bs {pkg.daily_profit_bs.toFixed(2)}</td>
+                      <td className="py-1.5 px-2 text-green-400 text-right font-medium">
+                        Bs {calculateMonthly(pkg.daily_profit_bs)}
+                      </td>
+                      <td className="py-1.5 px-2 text-gold text-right font-bold">
+                        Bs {calculateYearly(pkg.daily_profit_bs)}
+                      </td>
+                      <td className="py-1.5 px-2 text-gold-bright text-right font-bold">
+                        Bs {calculateTwoYears(pkg.daily_profit_bs)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </Card>
 
         <Card glassEffect className="overflow-x-auto">
-          <div className="p-4">
-            <h2 className="text-2xl font-bold text-gold mb-2">Bono de Patrocinio</h2>
-            <p className="text-sm text-text-secondary mb-4">
-              Bonos por niveles calculados sobre la inversión de cada paquete.
+          <div className="p-3">
+            <h2 className="text-lg font-bold text-gold mb-2">Bono de Patrocinio</h2>
+            <p className="text-xs text-text-secondary mb-3">
+              Bonos por niveles. Ejemplo: con 5 personas por nivel.
             </p>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gold border-opacity-30">
-                  <th className="text-left py-2 px-3 text-gold uppercase">Nivel</th>
-                  <th className="text-left py-2 px-3 text-gold uppercase">% Bono</th>
-                  {packages.map((pkg) => (
-                    <th key={`bonus-head-${pkg.id}`} className="text-left py-2 px-3 text-gold uppercase">
-                      {pkg.name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {bonusRules.map((rule) => (
-                  <tr key={`bonus-${rule.id}`} className="border-b border-gold border-opacity-10">
-                    <td className="py-2 px-3 text-text-primary">Nivel {rule.level}</td>
-                    <td className="py-2 px-3 text-text-secondary">{rule.percentage}%</td>
+
+            {/* Tabla de porcentajes por nivel */}
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gold border-opacity-30">
+                    <th className="text-left py-1.5 px-2 text-gold uppercase text-[10px]">Nivel</th>
+                    <th className="text-center py-1.5 px-2 text-gold uppercase text-[10px]">% Bono</th>
                     {packages.map((pkg) => (
-                      <td key={`bonus-${rule.id}-${pkg.id}`} className="py-2 px-3 text-text-secondary">
-                        Bs {((pkg.investment_bs * rule.percentage) / 100).toFixed(2)}
-                      </td>
+                      <th key={`bonus-head-${pkg.id}`} className="text-right py-1.5 px-2 text-gold uppercase text-[10px]">
+                        {pkg.name}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {bonusRules.map((rule) => (
+                    <tr key={`bonus-${rule.id}`} className="border-b border-gold border-opacity-10">
+                      <td className="py-1.5 px-2 text-text-primary font-medium">Nivel {rule.level}</td>
+                      <td className="py-1.5 px-2 text-center text-green-400 font-bold">{rule.percentage}%</td>
+                      {packages.map((pkg) => (
+                        <td key={`bonus-${rule.id}-${pkg.id}`} className="py-1.5 px-2 text-text-secondary text-right">
+                          Bs {((pkg.investment_bs * rule.percentage) / 100).toFixed(2)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Ejemplo con 5 personas por nivel */}
+            <div className="mt-4 p-3 bg-dark-card bg-opacity-50 rounded-lg border border-gold/20">
+              <h3 className="text-sm font-bold text-gold mb-2">Ejemplo: 5 personas por nivel</h3>
+              <p className="text-xs text-text-secondary mb-3">
+                Si tienes 5 personas en cada nivel con diferentes paquetes:
+              </p>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-gold border-opacity-30">
+                      <th className="text-left py-1.5 px-2 text-gold uppercase text-[10px]">Nivel</th>
+                      {packages.map((pkg) => (
+                        <th key={`example-head-${pkg.id}`} className="text-right py-1.5 px-2 text-gold uppercase text-[10px]">
+                          {pkg.name}
+                        </th>
+                      ))}
+                      <th className="text-right py-1.5 px-2 text-gold-bright uppercase text-[10px] font-bold">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bonusRules.map((rule) => {
+                      const totalByLevel = packages.reduce((sum, pkg) =>
+                        sum + ((pkg.investment_bs * rule.percentage) / 100) * 5, 0
+                      )
+                      return (
+                        <tr key={`example-${rule.id}`} className="border-b border-gold border-opacity-10">
+                          <td className="py-1.5 px-2 text-text-primary font-medium">
+                            Nivel {rule.level}
+                            <span className="text-[10px] text-text-secondary ml-1">(5 pers.)</span>
+                          </td>
+                          {packages.map((pkg) => (
+                            <td key={`example-${rule.id}-${pkg.id}`} className="py-1.5 px-2 text-green-400 text-right">
+                              Bs {(((pkg.investment_bs * rule.percentage) / 100) * 5).toFixed(2)}
+                            </td>
+                          ))}
+                          <td className="py-1.5 px-2 text-gold-bright text-right font-bold">
+                            Bs {totalByLevel.toFixed(2)}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                    {/* Total general */}
+                    <tr className="border-t-2 border-gold border-opacity-50 bg-gold/5">
+                      <td className="py-2 px-2 text-gold font-bold uppercase text-xs">
+                        Total General
+                      </td>
+                      {packages.map((pkg) => {
+                        const totalByPackage = bonusRules.reduce((sum, rule) =>
+                          sum + ((pkg.investment_bs * rule.percentage) / 100) * 5, 0
+                        )
+                        return (
+                          <td key={`total-pkg-${pkg.id}`} className="py-2 px-2 text-gold text-right font-bold">
+                            Bs {totalByPackage.toFixed(2)}
+                          </td>
+                        )
+                      })}
+                      <td className="py-2 px-2 text-gold-bright text-right font-bold text-sm">
+                        Bs {bonusRules.reduce((sum, rule) =>
+                          sum + packages.reduce((pkgSum, pkg) =>
+                            pkgSum + ((pkg.investment_bs * rule.percentage) / 100) * 5, 0
+                          ), 0
+                        ).toFixed(2)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="text-xs text-text-secondary mt-3 italic">
+                * Los bonos se pagan una sola vez cuando tus referidos activan su paquete VIP.
+              </p>
+            </div>
           </div>
         </Card>
       </div>
