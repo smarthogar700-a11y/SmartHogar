@@ -11,10 +11,14 @@ function canActivateToday(lastActivation: Date | null): { canActivate: boolean; 
   const now = new Date()
   const lastRun = new Date(lastActivation)
 
-  // SIEMPRE desbloquear a la 1:00 AM del día SIGUIENTE a la última activación
+  // Calcular la próxima 1:00 AM después de la última activación
   const unlockTime = new Date(lastRun)
-  unlockTime.setDate(unlockTime.getDate() + 1) // Próximo día
-  unlockTime.setHours(1, 0, 0, 0) // A las 1:00 AM
+  unlockTime.setHours(1, 0, 0, 0) // Establecer a 1:00 AM
+
+  // Si la última activación fue después de la 1:00 AM de hoy, desbloquea mañana a la 1:00 AM
+  if (lastRun >= unlockTime) {
+    unlockTime.setDate(unlockTime.getDate() + 1)
+  }
 
   // Si ahora es antes de la hora de desbloqueo, está bloqueado
   if (now < unlockTime) {
