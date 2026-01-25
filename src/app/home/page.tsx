@@ -328,26 +328,28 @@ export default function HomePage() {
     <div className="min-h-screen pb-20">
       <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gold flex items-center justify-center text-dark-bg font-bold text-xl">
-              {data.user.username?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div>
-              <p className="font-medium text-text-primary">{data.user.full_name}</p>
-              <p className="text-sm text-text-secondary">@{data.user.username}</p>
-            </div>
-          </div>
+        {/* Header con botón salir */}
+        <div className="flex justify-end">
           <button
             onClick={handleLogout}
-            className="text-blue-bright hover:text-gold transition-colors"
+            className="text-blue-bright hover:text-gold transition-colors text-sm"
           >
             Salir
           </button>
         </div>
 
-        {/* Top Carousel */}
+        {/* Perfil de Usuario */}
+        <div className="flex flex-col items-center space-y-3 -mt-4">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold text-3xl shadow-lg shadow-gold/30 border-4 border-dark-card">
+            {data.user.username?.charAt(0).toUpperCase() || 'U'}
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold text-text-primary">{data.user.full_name}</p>
+            <p className="text-sm text-gold">@{data.user.username}</p>
+          </div>
+        </div>
+
+        {/* Carrusel como Portada */}
         <div className="reveal-float">
           <Carousel images={topCarouselImages} />
         </div>
