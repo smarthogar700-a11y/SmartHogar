@@ -347,8 +347,8 @@ export default function DailyProfitHistory() {
               key={user.user_id}
               className={`${
                 user.activated_today
-                  ? 'border-l-4 border-l-green-500 bg-green-500/5'
-                  : 'border-l-4 border-l-red-500/50 bg-red-500/5'
+                  ? 'border-l-4 border-l-green-500 bg-green-500/10 border-t-2 border-t-green-500'
+                  : 'border-l-4 border-l-red-500 bg-red-500/10 border-t-2 border-t-red-500'
               }`}
             >
               <div className="space-y-3">
