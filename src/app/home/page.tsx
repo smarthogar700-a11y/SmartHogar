@@ -338,23 +338,25 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Portada con Carrusel de fondo y Perfil superpuesto */}
+        {/* Portada con Carrusel y Perfil */}
         <div className="relative -mt-4">
-          {/* Carrusel de fondo como portada */}
+          {/* Carrusel como portada */}
           <div className="reveal-float">
             <Carousel images={topCarouselImages} />
           </div>
 
-          {/* Perfil superpuesto sobre el carrusel */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          {/* Avatar posicionado en la parte baja del carrusel (mitad encima) */}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold text-3xl shadow-lg shadow-gold/50 border-4 border-dark-card">
               {data.user.username?.charAt(0).toUpperCase() || 'U'}
             </div>
-            <div className="text-center mt-3 bg-dark-bg/80 backdrop-blur-sm px-6 py-2 rounded-lg">
-              <p className="text-lg font-bold text-text-primary">{data.user.full_name}</p>
-              <p className="text-sm text-gold">@{data.user.username}</p>
-            </div>
           </div>
+        </div>
+
+        {/* Nombre y usuario debajo del carrusel */}
+        <div className="text-center mt-14">
+          <p className="text-lg font-bold text-text-primary">{data.user.full_name}</p>
+          <p className="text-sm text-gold">@{data.user.username}</p>
         </div>
 
         {data.announcements.length > 0 && showAnnouncements && (
