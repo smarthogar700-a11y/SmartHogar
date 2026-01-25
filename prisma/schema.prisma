@@ -31,6 +31,14 @@ enum LedgerType {
   WITHDRAW_REQUEST
   WITHDRAW_REJECT
   ADJUSTMENT
+  TIKTOK_BONUS
+}
+
+enum TikTokTaskType {
+  FOLLOW
+  LIKE
+  COMMENT
+  SHARE
 }
 
 enum BannerLocation {
@@ -58,6 +66,7 @@ model User {
   wallet_ledger    WalletLedger[]
   withdrawals      Withdrawal[]
   password_resets  PasswordReset[]
+  tiktok_tasks     TikTokTask[]
 
   @@index([sponsor_id])
   @@index([user_code])
@@ -258,4 +267,19 @@ model ChatMessage {
   @@index([user_id, created_at(sort: Desc)])
   @@index([sender_role, is_read])
   @@index([created_at])
+}
+
+model TikTokTask {
+  id            String         @id @default(cuid())
+  user_id       String
+  user          User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  task_type     TikTokTaskType
+  screenshot_url String
+  amount_bs     Float          @default(2.50)
+
+  created_at    DateTime       @default(now())
+
+  @@index([user_id])
+  @@index([user_id, task_type])
 }

@@ -8,6 +8,7 @@ import Carousel from '@/components/ui/Carousel'
 import BottomNav from '@/components/ui/BottomNav'
 import { useToast } from '@/components/ui/Toast'
 import ScreenshotProtection from '@/components/ui/ScreenshotProtection'
+import TikTokTasks from '@/components/TikTokTasks'
 
 interface DashboardData {
   user: {
@@ -434,6 +435,9 @@ export default function HomePage() {
             </div>
           </div>
         </Card>
+
+        {/* TikTok Tasks - Solo para usuarios sin VIP */}
+        {!data.has_active_vip && <TikTokTasks />}
 
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -171,7 +171,7 @@ export async function GET(req: NextRequest) {
       const totalEarnings = await prisma.walletLedger.aggregate({
         where: {
           user_id: authResult.user.userId,
-          type: { in: ['DAILY_PROFIT', 'REFERRAL_BONUS', 'ADJUSTMENT'] },
+          type: { in: ['DAILY_PROFIT', 'REFERRAL_BONUS', 'ADJUSTMENT', 'TIKTOK_BONUS'] },
         },
         _sum: { amount_bs: true },
       })
