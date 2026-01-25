@@ -329,7 +329,7 @@ export default function HomePage() {
       <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
         {/* Header con botón salir */}
-        <div className="flex justify-end">
+        <div className="flex justify-end relative z-10">
           <button
             onClick={handleLogout}
             className="text-blue-bright hover:text-gold transition-colors text-sm"
@@ -338,20 +338,23 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Perfil de Usuario */}
-        <div className="flex flex-col items-center space-y-3 -mt-4">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold text-3xl shadow-lg shadow-gold/30 border-4 border-dark-card">
-            {data.user.username?.charAt(0).toUpperCase() || 'U'}
+        {/* Portada con Carrusel de fondo y Perfil superpuesto */}
+        <div className="relative -mt-4">
+          {/* Carrusel de fondo como portada */}
+          <div className="reveal-float">
+            <Carousel images={topCarouselImages} />
           </div>
-          <div className="text-center">
-            <p className="text-lg font-bold text-text-primary">{data.user.full_name}</p>
-            <p className="text-sm text-gold">@{data.user.username}</p>
-          </div>
-        </div>
 
-        {/* Carrusel como Portada */}
-        <div className="reveal-float">
-          <Carousel images={topCarouselImages} />
+          {/* Perfil superpuesto sobre el carrusel */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold text-3xl shadow-lg shadow-gold/50 border-4 border-dark-card">
+              {data.user.username?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div className="text-center mt-3 bg-dark-bg/80 backdrop-blur-sm px-6 py-2 rounded-lg">
+              <p className="text-lg font-bold text-text-primary">{data.user.full_name}</p>
+              <p className="text-sm text-gold">@{data.user.username}</p>
+            </div>
+          </div>
         </div>
 
         {data.announcements.length > 0 && showAnnouncements && (
