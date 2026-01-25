@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
-import { useToast } from '@/components/ui/Toast'
 
 interface VIPPackage {
   package_name: string
@@ -50,55 +49,11 @@ export default function DailyProfitHistory() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<FilterType>('all')
   const [searchTerm, setSearchTerm] = useState('')
-  const [executing, setExecuting] = useState(false)
-  const [unlockTime, setUnlockTime] = useState<Date | null>(null)
-  const [isBlocked, setIsBlocked] = useState(true)
-  const [timeLeft, setTimeLeft] = useState<string>('')
-  const { showToast } = useToast()
-
-  // Verificar si está disponible ejecutar (solo a la 1 AM)
-  const checkBlockStatus = () => {
-    const now = new Date()
-    const currentHour = now.getHours()
-    
-    // Solo disponible en la hora 1 (1:00 AM a 1:59 AM)
-    const blocked = currentHour !== 1
-    
-    if (blocked) {
-      // Calcular próximo desbloqueó (próximo 1:00 AM)
-      const nextUnlock = new Date(now)
-      nextUnlock.setHours(1, 0, 0, 0)
-      if (now.getTime() >= nextUnlock.getTime()) {
-        nextUnlock.setDate(nextUnlock.getDate() + 1)
-      }
-      setUnlockTime(nextUnlock)
-      
-      // Calcular tiempo restante
-      const diff = nextUnlock.getTime() - now.getTime()
-      const hours = Math.floor(diff / (1000 * 60 * 60))
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-      setTimeLeft(`${hours}h ${minutes}m`)
-    } else {
-      setTimeLeft('¡Disponible ahora!')
-    }
-    
-    setIsBlocked(blocked)
-  }
-
   useEffect(() => {
     fetchHistory()
-    checkBlockStatus()
-    
     // Auto-refresh cada 30 segundos
     const interval = setInterval(fetchHistory, 30000)
-    
-    // Verificar estado de bloqueo cada minuto
-    const blockCheckInterval = setInterval(checkBlockStatus, 60000)
-    
-    return () => {
-      clearInterval(interval)
-      clearInterval(blockCheckInterval)
-    }
+    return () => clearInterval(interval)
   }, [])
 
   const fetchHistory = async () => {
@@ -132,46 +87,6 @@ export default function DailyProfitHistory() {
     }
   }
 
-  const handleRunDailyProfit = async () => {
-    if (isBlocked) {
-      showToast('🔒 Solo disponible a la 1:00 AM - ' + timeLeft, 'error')
-      return
-    }
-
-    if (!confirm('¿Ejecutar proceso de ganancias diarias ahora?')) return
-
-    setExecuting(true)
-    try {
-      const token = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('auth_token='))
-        ?.split('=')[1]
-
-      if (!token) {
-        showToast('Sesión expirada', 'error')
-        return
-      }
-
-      const res = await fetch('/api/admin/run-daily-profit', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      const result = await res.json()
-
-      if (res.ok) {
-        showToast(`✅ ${result.message}. Procesados: ${result.processed}`, 'success')
-        fetchHistory()
-      } else {
-        showToast(result.error || 'Error al procesar ganancias', 'error')
-      }
-    } catch (error) {
-      console.error('Error:', error)
-      showToast('Error al ejecutar ganancias', 'error')
-    } finally {
-      setExecuting(false)
-    }
-  }
 
   const filteredUsers = data?.users.filter((user) => {
     // Filtro por estado
@@ -215,33 +130,6 @@ export default function DailyProfitHistory() {
 
   return (
     <div className="space-y-4">
-      {/* Tarjeta de Ejecución de Ganancias */}
-      <Card glassEffect className={`${isBlocked ? 'border-red-500/30 bg-red-500/5' : 'border-green-500/30 bg-green-500/5'}`}>
-        <div className="space-y-3">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-gold mb-2">⏱️ Ejecutar Ganancias Diarias</h3>
-            <p className="text-sm text-text-secondary">
-              {isBlocked ? (
-                <span>
-                  🔒 Bloqueado - Sistema solo disponible a la 1:00 AM<br />
-                  ⏰ Tiempo restante: <span className="text-gold font-bold">{timeLeft}</span>
-                </span>
-              ) : (
-                <span className="text-green-400">✅ Sistema desbloqueado - ¡Disponible ahora!</span>
-              )}
-            </p>
-          </div>
-          <Button
-            variant={isBlocked ? 'outline' : 'primary'}
-            onClick={handleRunDailyProfit}
-            disabled={isBlocked || executing}
-            className={`w-full ${!isBlocked ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' : ''}`}
-          >
-            {executing ? '⏳ Procesando...' : isBlocked ? `🔒 Bloqueado hasta 1 AM (${timeLeft})` : '▶️ Ejecutar Proceso'}
-          </Button>
-        </div>
-      </Card>
-
       {/* Header y Resumen */}
       <Card glassEffect>
         <div className="space-y-4">
