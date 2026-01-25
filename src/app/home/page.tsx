@@ -347,14 +347,14 @@ export default function HomePage() {
 
           {/* Avatar posicionado en la parte baja del carrusel (mitad encima) */}
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold text-3xl shadow-lg shadow-gold/50 border-4 border-dark-card">
+            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold text-4xl shadow-lg shadow-gold/50 border-4 border-dark-card">
               {data.user.username?.charAt(0).toUpperCase() || 'U'}
             </div>
           </div>
         </div>
 
-        {/* Nombre y usuario debajo del carrusel */}
-        <div className="text-center mt-14">
+        {/* Nombre y usuario debajo del avatar (con espacio de 5px desde el borde del avatar) */}
+        <div className="text-center" style={{ marginTop: '69px' }}>
           <p className="text-lg font-bold text-text-primary">{data.user.full_name}</p>
           <p className="text-sm text-gold">@{data.user.username}</p>
         </div>

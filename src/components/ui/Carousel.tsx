@@ -23,14 +23,14 @@ export default function Carousel({ images, autoPlayInterval = 5000 }: CarouselPr
 
   if (images.length === 0) {
     return (
-      <div className="w-full aspect-video bg-dark-card rounded-card flex items-center justify-center">
+      <div className="bg-dark-card rounded-card flex items-center justify-center" style={{ height: '200px', maxWidth: '1200px', margin: '0 auto' }}>
         <p className="text-text-secondary">No hay banners disponibles</p>
       </div>
     )
   }
 
   return (
-    <div className="relative w-full aspect-video rounded-card overflow-hidden">
+    <div className="relative rounded-card overflow-hidden" style={{ height: '200px', maxWidth: '1200px', margin: '0 auto' }}>
       {images.map((img, index) => (
         <div
           key={img.id}
