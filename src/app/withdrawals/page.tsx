@@ -189,7 +189,7 @@ export default function WithdrawalsPage() {
       <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gold gold-glow">Retiros</h1>
+          <h1 className="text-sm font-bold text-gold gold-glow">Retiros</h1>
           <p className="mt-2 text-text-secondary uppercase tracking-wider text-sm font-light">
             Solicita tu retiro
           </p>
@@ -224,7 +224,7 @@ export default function WithdrawalsPage() {
             <p className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
               Saldo disponible
             </p>
-            <p className="text-4xl font-bold text-gold gold-glow">
+            <p className="text-sm font-bold text-gold gold-glow">
               Bs {balance.toFixed(2)}
             </p>
           </div>
@@ -312,7 +312,7 @@ export default function WithdrawalsPage() {
         </Card>
 
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gold">Historial de Retiros</h2>
+          <h2 className="text-sm font-bold text-gold">Historial de Retiros</h2>
           {withdrawals.length === 0 ? (
             <Card>
               <p className="text-center text-text-secondary">

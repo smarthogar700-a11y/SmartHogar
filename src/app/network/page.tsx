@@ -241,7 +241,7 @@ export default function NetworkPage() {
       <div className="min-h-screen flex items-center justify-center pb-20">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gold text-lg font-light animate-pulse">Cargando árbol de red...</p>
+          <p className="text-gold text-sm font-light animate-pulse">Cargando árbol de red...</p>
         </div>
       </div>
     )
@@ -250,7 +250,7 @@ export default function NetworkPage() {
   if (error) {
     return (
       <div className="min-h-screen pb-20 flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <h2 className="text-2xl text-red-400 font-bold">Error</h2>
+        <h2 className="text-sm text-red-400 font-bold">Error</h2>
         <p className="text-text-secondary">{error}</p>
         <button
           onClick={fetchNetwork}
@@ -273,7 +273,7 @@ export default function NetworkPage() {
         {/* Header Flotante */}
         <div className="fixed top-0 left-0 right-0 z-50 p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
           <div className="text-center pointer-events-auto mt-12">
-            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold via-white to-gold animate-shine">
+            <h1 className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold via-white to-gold animate-shine">
               Mi Red Global
             </h1>
             <div className="mt-2 flex items-center justify-center gap-4 text-xs font-mono">
@@ -327,11 +327,11 @@ export default function NetworkPage() {
               {/* Header */}
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-4">
-                  <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center text-xl font-bold bg-dark-bg ${selectedUser.status === 'ACTIVO' ? 'border-green-400 text-green-400' : 'border-gray-500 text-gray-500'}`}>
+                  <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center text-base font-bold bg-dark-bg ${selectedUser.status === 'ACTIVO' ? 'border-green-400 text-green-400' : 'border-gray-500 text-gray-500'}`}>
                     {selectedUser.username.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">{selectedUser.full_name}</h2>
+                    <h2 className="text-base font-bold text-white">{selectedUser.full_name}</h2>
                     <p className="text-sm text-gold">@{selectedUser.username}</p>
                     <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${selectedUser.status === 'ACTIVO' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
                       {selectedUser.status}
@@ -349,11 +349,11 @@ export default function NetworkPage() {
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-3 py-4 border-y border-white/5">
                 <div className="bg-dark-bg/50 p-3 rounded-lg text-center">
-                  <p className="text-xl font-bold text-white">{selectedUser.referrals?.length || 0}</p>
+                  <p className="text-base font-bold text-white">{selectedUser.referrals?.length || 0}</p>
                   <p className="text-[10px] text-text-secondary uppercase">Referidos</p>
                 </div>
                 <div className="bg-dark-bg/50 p-3 rounded-lg text-center">
-                  <p className="text-xl font-bold text-gold">{selectedUser.vip_packages?.length || 0}</p>
+                  <p className="text-base font-bold text-gold">{selectedUser.vip_packages?.length || 0}</p>
                   <p className="text-[10px] text-text-secondary uppercase">Paks Activos</p>
                 </div>
               </div>

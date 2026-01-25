@@ -357,7 +357,7 @@ export default function HomePage() {
             <div className="max-w-xl w-full">
               <Card glassEffect>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gold text-center w-full">
+                  <h2 className="text-base font-bold text-gold text-center w-full">
                     {data.announcements[0]?.title || 'Noticia'}
                   </h2>
                   <button
@@ -385,7 +385,7 @@ export default function HomePage() {
             <p className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
               Tu código de referido
             </p>
-            <p className="text-2xl font-bold text-gold gold-glow">{data.user.user_code}</p>
+            <p className="text-sm font-bold text-gold gold-glow">{data.user.user_code}</p>
             <div className="space-y-2">
               <p className="text-xs text-text-secondary uppercase tracking-wider font-light mb-2">
                 Link de referido
@@ -447,7 +447,7 @@ export default function HomePage() {
                 Ganancia Diaria
               </h3>
             </div>
-            <p className="text-3xl font-bold text-gold gold-glow">
+            <p className="text-base font-bold text-gold gold-glow">
               Bs {data.daily_profit.toFixed(2)}
             </p>
             {data.has_active_vip ? (
@@ -515,7 +515,7 @@ export default function HomePage() {
             <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
               Bonos Patrocinio
             </h3>
-            <p className="text-3xl font-bold text-gold gold-glow">
+            <p className="text-base font-bold text-gold gold-glow">
               Bs {data.referral_bonus_total.toFixed(2)}
             </p>
             {data.referral_bonus_levels.length > 0 && (
@@ -536,7 +536,7 @@ export default function HomePage() {
               <h3 className="text-xs text-text-secondary uppercase tracking-wider font-light mb-2">
                 Ajustes desde Panel
               </h3>
-              <p className={`text-2xl font-bold ${data.adjustments.total >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <p className={`text-sm font-bold ${data.adjustments.total >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {data.adjustments.total >= 0 ? '+' : ''}Bs {data.adjustments.total.toFixed(2)}
               </p>
               <div className="mt-2 space-y-1">
@@ -561,7 +561,7 @@ export default function HomePage() {
             <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
               Ganancias Totales
             </h3>
-            <p className="text-3xl font-bold text-gold gold-glow">
+            <p className="text-base font-bold text-gold gold-glow">
               Bs {data.total_earnings.toFixed(2)}
             </p>
           </Card>
@@ -573,7 +573,7 @@ export default function HomePage() {
             <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
               Red
             </h3>
-            <p className="text-2xl font-bold text-gold gold-glow">
+            <p className="text-sm font-bold text-gold gold-glow">
               {data.network_count}
             </p>
           </Card>
@@ -582,7 +582,7 @@ export default function HomePage() {
             <h3 className="text-sm text-text-secondary uppercase tracking-wider font-light mb-2">
               Directos
             </h3>
-            <p className="text-2xl font-bold text-gold gold-glow">
+            <p className="text-sm font-bold text-gold gold-glow">
               {data.direct_referrals}
             </p>
           </Card>
@@ -667,7 +667,7 @@ export default function HomePage() {
         className="fixed bottom-24 right-1 z-40 w-10 h-10 bg-gradient-to-br from-gold to-gold-bright rounded-full shadow-lg flex items-center justify-center text-dark-bg hover:scale-110 transition-transform duration-300"
         title="Sobre Nosotros"
       >
-        <span className="text-lg font-bold">i</span>
+        <span className="text-sm font-bold">i</span>
       </button>
 
       {/* Modal - Sobre Nosotros */}
@@ -685,7 +685,7 @@ export default function HomePage() {
                   <div className="flex justify-end sticky top-0 bg-dark-card z-10 -mt-2 -mr-2 pt-2 pr-2">
                     <button
                       onClick={() => setShowAboutUs(false)}
-                      className="text-text-secondary hover:text-gold transition-colors text-xl font-bold bg-dark-card rounded-full w-8 h-8 flex items-center justify-center"
+                      className="text-text-secondary hover:text-gold transition-colors text-base font-bold bg-dark-card rounded-full w-8 h-8 flex items-center justify-center"
                     >
                       ✕
                     </button>
@@ -703,13 +703,13 @@ export default function HomePage() {
                         }}
                       />
                     </div>
-                    <h3 className="text-gold font-bold text-xl mt-3">Lawrence Miller</h3>
+                    <h3 className="text-gold font-bold text-base mt-3">Lawrence Miller</h3>
                     <p className="text-text-secondary text-sm">CEO & Fundador</p>
                   </div>
 
                   {/* Título de la empresa */}
                   <div className="text-center border-b border-gold/20 pb-4">
-                    <h2 className="text-2xl font-bold text-gold gold-glow">SmartHogar</h2>
+                    <h2 className="text-sm font-bold text-gold gold-glow">SmartHogar</h2>
                     <p className="text-xs text-text-secondary mt-1">Importadora y Distribuidora Internacional</p>
                     <p className="text-xs text-gold/70 mt-1">Constituida en Florida, Estados Unidos</p>
                   </div>
@@ -786,19 +786,19 @@ export default function HomePage() {
                     {/* Datos destacados */}
                     <div className="grid grid-cols-2 gap-2 pt-2">
                       <div className="text-center bg-gold/10 rounded-lg p-3 border border-gold/30">
-                        <p className="text-xl font-bold text-gold">+8 años</p>
+                        <p className="text-base font-bold text-gold">+8 años</p>
                         <p className="text-[10px] text-text-secondary uppercase">En el mercado</p>
                       </div>
                       <div className="text-center bg-gold/10 rounded-lg p-3 border border-gold/30">
-                        <p className="text-xl font-bold text-gold">USA</p>
+                        <p className="text-base font-bold text-gold">USA</p>
                         <p className="text-[10px] text-text-secondary uppercase">Sede en Florida</p>
                       </div>
                       <div className="text-center bg-gold/10 rounded-lg p-3 border border-gold/30">
-                        <p className="text-xl font-bold text-gold">LATAM</p>
+                        <p className="text-base font-bold text-gold">LATAM</p>
                         <p className="text-[10px] text-text-secondary uppercase">Distribución</p>
                       </div>
                       <div className="text-center bg-gold/10 rounded-lg p-3 border border-gold/30">
-                        <p className="text-xl font-bold text-gold">24/7</p>
+                        <p className="text-base font-bold text-gold">24/7</p>
                         <p className="text-[10px] text-text-secondary uppercase">Soporte</p>
                       </div>
                     </div>

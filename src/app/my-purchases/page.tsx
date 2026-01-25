@@ -96,7 +96,7 @@ export default function MyPurchasesPage() {
       <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gradient-gold-blue">Mis VIPs</h1>
+          <h1 className="text-sm font-bold text-gradient-gold-blue">Mis VIPs</h1>
           <p className="mt-2 text-text-secondary uppercase tracking-wider text-sm font-light">
             Paquetes VIP adquiridos
           </p>
@@ -115,7 +115,7 @@ export default function MyPurchasesPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-xl font-bold text-gold">
+                      <h3 className="text-base font-bold text-gold">
                         {purchase.vip_package.name}
                       </h3>
                       <p className="text-sm text-text-secondary">

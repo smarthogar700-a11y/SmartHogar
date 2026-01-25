@@ -142,7 +142,7 @@ export default function PaksPage() {
         </div>
 
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gold">Paquetes VIP</h1>
+          <h1 className="text-sm font-bold text-gold">Paquetes VIP</h1>
           <p className="mt-2 text-text-secondary uppercase tracking-wider text-sm font-light">
             Elige tu inversión
           </p>
@@ -157,7 +157,7 @@ export default function PaksPage() {
               <Card key={pkg.id} glassEffect>
                 <div className="space-y-4">
                   <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gold">{pkg.name}</h2>
+                    <h2 className="text-sm font-bold text-gold">{pkg.name}</h2>
                     <p className="text-sm text-text-secondary uppercase tracking-wider font-light mt-1">
                       Nivel {pkg.level}
                     </p>

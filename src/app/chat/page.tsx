@@ -164,7 +164,7 @@ export default function ChatPage() {
         {/* Header */}
         <div className="bg-dark-card border-b border-white/10 p-4 sticky top-0 z-10">
           <div className="max-w-screen-xl mx-auto">
-            <h1 className="text-xl font-bold text-gold">Soporte</h1>
+            <h1 className="text-base font-bold text-gold">Soporte</h1>
             <p className="text-xs text-text-secondary">Chat con el administrador</p>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function ChatPage() {
         <div className="flex-1 flex items-center justify-center p-6">
           <Card glassEffect className="text-center max-w-md">
             <div className="text-6xl mb-4">🔒</div>
-            <h2 className="text-xl font-bold text-gold mb-2">Chat no disponible</h2>
+            <h2 className="text-base font-bold text-gold mb-2">Chat no disponible</h2>
             <p className="text-text-secondary mb-4">
               Para acceder al chat de soporte, necesitas tener al menos un paquete VIP activo.
             </p>
@@ -197,7 +197,7 @@ export default function ChatPage() {
       {/* Header */}
       <div className="bg-dark-card border-b border-white/10 p-4 sticky top-0 z-10">
         <div className="max-w-screen-xl mx-auto">
-          <h1 className="text-xl font-bold text-gold">Soporte</h1>
+          <h1 className="text-base font-bold text-gold">Soporte</h1>
           <p className="text-xs text-text-secondary">Chat con el administrador</p>
         </div>
       </div>
@@ -210,7 +210,7 @@ export default function ChatPage() {
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center text-text-secondary py-8">
-            <p className="text-4xl mb-4">💬</p>
+            <p className="text-sm mb-4">💬</p>
             <p>No hay mensajes aun</p>
             <p className="text-xs mt-2">Escribe tu primer mensaje para iniciar la conversacion</p>
           </div>
