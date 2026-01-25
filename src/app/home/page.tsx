@@ -422,7 +422,7 @@ export default function HomePage() {
                 <Button
                   variant="outline"
                   className="animate-whatsapp border-[#25D366] bg-gradient-to-r from-[#128C7E]/20 to-[#25D366]/20 hover:from-[#128C7E]/40 hover:to-[#25D366]/40 text-white transition-all duration-300 py-1.5"
-                  onClick={() => window.open('https://chat.whatsapp.com/GwvmuzwVtWH4n4RS4S2OOu', '_blank')}
+                  onClick={() => window.open('https://chat.whatsapp.com/CgBMvGuPsiZ9xmLhSabsJX', '_blank')}
                 >
                   <span className="flex flex-col items-center justify-center gap-0.5">
                     <svg className="w-4 h-4" fill="#25D366" viewBox="0 0 24 24">
