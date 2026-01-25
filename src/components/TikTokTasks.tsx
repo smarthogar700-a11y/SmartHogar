@@ -166,7 +166,7 @@ export default function TikTokTasks() {
           <Button
             variant="primary"
             className="w-full bg-gradient-to-r from-gold to-gold-bright"
-            onClick={() => window.location.href = '/vip'}
+            onClick={() => window.location.href = '/paks'}
           >
             Ver Planes VIP
           </Button>

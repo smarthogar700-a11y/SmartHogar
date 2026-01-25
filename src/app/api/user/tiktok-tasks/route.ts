@@ -1,10 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth/middleware'
+import { getSupabaseAdminClient } from '@/lib/supabaseClient'
 
 const TASK_ORDER = ['FOLLOW', 'LIKE', 'COMMENT', 'SHARE'] as const
 const BONUS_PER_TASK = 2.50
 const MAX_BONUS = 10
+
+// Función para extraer el path del archivo de una URL de Supabase
+function extractFilePath(url: string): string | null {
+  try {
+    // URL típica: https://xxx.supabase.co/storage/v1/object/public/Smart/uploads/userId_timestamp.ext
+    const match = url.match(/\/Smart\/(.+)$/)
+    return match ? match[1] : null
+  } catch {
+    return null
+  }
+}
+
+// Función para eliminar imágenes de Supabase Storage
+async function deleteScreenshots(screenshotUrls: string[]): Promise<void> {
+  try {
+    const supabase = getSupabaseAdminClient()
+    const filePaths = screenshotUrls
+      .map(url => extractFilePath(url))
+      .filter((path): path is string => path !== null)
+
+    if (filePaths.length > 0) {
+      const { error } = await supabase.storage
+        .from('Smart')
+        .remove(filePaths)
+
+      if (error) {
+        console.error('Error eliminando imágenes de TikTok:', error)
+      } else {
+        console.log(`[TIKTOK] ${filePaths.length} imágenes eliminadas de Storage`)
+      }
+    }
+  } catch (error) {
+    console.error('Error al eliminar screenshots:', error)
+  }
+}
 
 // GET - Obtener estado de tareas del usuario
 export async function GET(req: NextRequest) {
@@ -147,13 +183,37 @@ export async function POST(req: NextRequest) {
     const newTotal = (completedTasks.length + 1) * BONUS_PER_TASK
     const isComplete = newTotal >= MAX_BONUS
 
+    // Si completó las 4 tareas, eliminar las imágenes de Storage
+    if (isComplete) {
+      // Obtener todas las URLs de screenshots (incluyendo la recién agregada)
+      const allTasks = await prisma.tikTokTask.findMany({
+        where: { user_id: userId },
+        select: { screenshot_url: true },
+      })
+
+      const screenshotUrls = allTasks.map(t => t.screenshot_url)
+
+      // Eliminar imágenes de Supabase Storage (async, no bloqueante)
+      deleteScreenshots(screenshotUrls)
+
+      // Limpiar las URLs de los registros (para privacidad)
+      await prisma.tikTokTask.updateMany({
+        where: { user_id: userId },
+        data: { screenshot_url: '' },
+      })
+
+      console.log(`[TIKTOK] Usuario ${userId} completó las 4 tareas. Imágenes eliminadas.`)
+    }
+
     // Determinar siguiente tarea
     const newCompletedTypes = [...completedTypes, task_type]
     const nextTask = TASK_ORDER.find(t => !newCompletedTypes.includes(t)) || null
 
     return NextResponse.json({
       success: true,
-      message: `+Bs ${BONUS_PER_TASK.toFixed(2)} acumulados`,
+      message: isComplete
+        ? `¡Felicidades! Has acumulado Bs ${newTotal.toFixed(2)}`
+        : `+Bs ${BONUS_PER_TASK.toFixed(2)} acumulados`,
       tasks_completed: completedTasks.length + 1,
       total_earned: newTotal,
       next_task: nextTask,
