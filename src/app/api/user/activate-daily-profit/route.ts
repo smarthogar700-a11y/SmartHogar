@@ -4,7 +4,6 @@ import { requireAuth } from '@/lib/auth/middleware'
 
 // Función para verificar si el usuario ya activó hoy
 function canActivateToday(lastActivation: Date | null): { canActivate: boolean; unlocksAt: Date | null } {
-  // Si nunca ha activado, puede hacerlo
   if (!lastActivation) {
     return { canActivate: true, unlocksAt: null }
   }
@@ -12,12 +11,12 @@ function canActivateToday(lastActivation: Date | null): { canActivate: boolean; 
   const now = new Date()
   const lastRun = new Date(lastActivation)
 
-  // Una vez activó, se bloquea hasta la 1:00 AM del PRÓXIMO día
+  // SIEMPRE desbloquear a la 1:00 AM del día SIGUIENTE a la última activación
   const unlockTime = new Date(lastRun)
   unlockTime.setDate(unlockTime.getDate() + 1) // Próximo día
   unlockTime.setHours(1, 0, 0, 0) // A las 1:00 AM
 
-  // Si aún no llega a esa hora, está bloqueado
+  // Si ahora es antes de la hora de desbloqueo, está bloqueado
   if (now < unlockTime) {
     return { canActivate: false, unlocksAt: unlockTime }
   }
