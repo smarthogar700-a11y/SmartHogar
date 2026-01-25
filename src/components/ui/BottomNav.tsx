@@ -9,11 +9,11 @@ export default function BottomNav() {
   const navItems = [
     { href: '/home', label: 'Home', icon: '🏠' },
     { href: '/paks', label: 'Paks', icon: '💎' },
-    { href: '/my-purchases', label: 'Mis VIPs', icon: '👑' },
-    { href: '/tables', label: 'Tablas', icon: '📊' },
+    { href: '/my-purchases', label: 'Mis Compras', icon: '👑' },
+    { href: '/tables', label: 'Tabla de Ganancia', icon: '📊' },
     { href: '/shop', label: 'Tienda', icon: '🛒' },
     { href: '/network', label: 'Red', icon: '🌐' },
-    { href: '/withdrawals', label: 'Retiros', icon: '💰' },
+    { href: '/withdrawals', label: 'Billetera', icon: '💰' },
     { href: '/chat', label: 'Soporte', icon: '💬' },
   ]
 
