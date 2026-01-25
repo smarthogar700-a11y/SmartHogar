@@ -27,7 +27,7 @@ const TASK_ICONS: Record<string, string> = {
   SHARE: '🔄',
 }
 
-const TIKTOK_URL = 'https://www.tiktok.com/@smarthogarsrl'
+const TIKTOK_URL = 'https://www.tiktok.com/@smarthogar.bo?_r=1&_t=ZS-93MA0fDcP4s'
 
 export default function TikTokTasks() {
   const [data, setData] = useState<TikTokTasksData | null>(null)
