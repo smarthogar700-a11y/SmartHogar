@@ -26,13 +26,17 @@ export default function TablaPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const pkgRes = await fetch('/api/packages')
+        // Usar cache: 'no-store' para obtener siempre datos frescos
+        const [pkgRes, bonusRes] = await Promise.all([
+          fetch('/api/packages', { cache: 'no-store' }),
+          fetch('/api/bonus-rules', { cache: 'no-store' })
+        ])
+
         if (pkgRes.ok) {
           const data = await pkgRes.json()
           setPackages(data)
         }
 
-        const bonusRes = await fetch('/api/bonus-rules')
         if (bonusRes.ok) {
           const bonusData = await bonusRes.json()
           setBonusRules(bonusData)

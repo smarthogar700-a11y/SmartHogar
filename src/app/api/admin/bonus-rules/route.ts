@@ -30,18 +30,27 @@ export async function PUT(req: NextRequest) {
   }
 
   try {
-    const { id, percentage } = await req.json()
+    const body = await req.json()
+    const id = typeof body.id === 'string' ? parseInt(body.id, 10) : body.id
+    const percentage = typeof body.percentage === 'string' ? parseFloat(body.percentage) : body.percentage
 
-    if (!id || percentage === undefined) {
-      return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
+    if (!id || percentage === undefined || isNaN(percentage)) {
+      return NextResponse.json({ error: 'Datos incompletos o inválidos' }, { status: 400 })
+    }
+
+    // Validar que el porcentaje esté en rango válido
+    if (percentage < 0 || percentage > 100) {
+      return NextResponse.json({ error: 'El porcentaje debe estar entre 0 y 100' }, { status: 400 })
     }
 
     const updated = await prisma.referralBonusRule.update({
-      where: { id: parseInt(id) },
+      where: { id },
       data: {
-        percentage: parseFloat(percentage),
+        percentage,
       },
     })
+
+    console.log(`[BONUS] Regla nivel ${updated.level} actualizada a ${updated.percentage}%`)
 
     return NextResponse.json(updated)
   } catch (error) {

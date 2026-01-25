@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+// Forzar que siempre sea dinámico (sin caché)
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     // Solo devolver los 3 niveles de patrocinio
