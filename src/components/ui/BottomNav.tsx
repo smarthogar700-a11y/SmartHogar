@@ -32,8 +32,8 @@ export default function BottomNav() {
                 }`}
             >
               {/* Indicator removed */}
-              <span className={`text-2xl mb-1 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(193,232,255,0.5)]' : ''} transition-transform`}>{item.icon}</span>
-              <span className="text-[10px] font-medium tracking-wide uppercase">{item.label}</span>
+              <span className={`text-xl mb-1 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(193,232,255,0.5)]' : ''} transition-transform`}>{item.icon}</span>
+              <span className="text-[8px] font-medium tracking-tight uppercase">{item.label}</span>
             </Link>
           )
         })}
