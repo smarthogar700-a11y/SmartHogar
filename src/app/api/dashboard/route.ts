@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
         username: true,
         full_name: true,
         user_code: true,
+        profile_image_url: true,
       },
     })
 
@@ -270,6 +271,7 @@ export async function GET(req: NextRequest) {
           username: true,
           full_name: true,
           created_at: true,
+          profile_image_url: true,
         },
       })
     } catch (error) {

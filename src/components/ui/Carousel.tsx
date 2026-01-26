@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 
 interface CarouselProps {
   images: { id: number; image_url: string; link_url?: string | null }[]
@@ -23,27 +22,26 @@ export default function Carousel({ images, autoPlayInterval = 5000 }: CarouselPr
 
   if (images.length === 0) {
     return (
-      <div className="bg-dark-card rounded-card flex items-center justify-center" style={{ height: '200px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="bg-dark-card rounded-card flex items-center justify-center" style={{ height: '200px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <p className="text-text-secondary">No hay banners disponibles</p>
       </div>
     )
   }
 
   return (
-    <div className="relative rounded-card overflow-hidden" style={{ height: '200px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="relative overflow-hidden" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', borderRadius: '20px' }}>
       {images.map((img, index) => (
         <div
           key={img.id}
-          className={`absolute inset-0 transition-opacity duration-700 ${
-            index === currentIndex ? 'opacity-100' : 'opacity-0'
+          className={`transition-opacity duration-700 ${
+            index === currentIndex ? 'opacity-100 relative' : 'opacity-0 absolute inset-0'
           }`}
         >
-          <Image
+          <img
             src={img.image_url}
             alt={`Banner ${index + 1}`}
-            fill
-            className="object-cover"
-            priority={index === 0}
+            className="w-full h-auto"
+            style={{ borderRadius: '20px' }}
           />
         </div>
       ))}

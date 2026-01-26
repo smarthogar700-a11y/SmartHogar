@@ -15,6 +15,7 @@ interface DashboardData {
     username: string
     full_name: string
     user_code: string
+    profile_image_url?: string | null
   }
   daily_profit: number
   daily_profit_total: number
@@ -67,6 +68,7 @@ interface DashboardData {
     username: string
     full_name: string
     created_at: string
+    profile_image_url?: string | null
   }[]
 }
 
@@ -82,6 +84,10 @@ export default function HomePage() {
   const [canActivate, setCanActivate] = useState(false)
   const [unlocksAt, setUnlocksAt] = useState<string | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -260,7 +266,104 @@ export default function HomePage() {
     router.push('/login')
   }
 
-   const topCarouselImages = [
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('La imagen debe ser menor a 5MB', 'error')
+        return
+      }
+      setSelectedFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleUpdateProfileImage = async () => {
+    if (!selectedFile) {
+      showToast('Por favor selecciona una imagen', 'error')
+      return
+    }
+
+    setUploadingPhoto(true)
+    try {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('auth_token='))
+        ?.split('=')[1]
+
+      if (!token) {
+        showToast('Sesión expirada', 'error')
+        setUploadingPhoto(false)
+        return
+      }
+
+      // Convertir imagen a base64
+      const reader = new FileReader()
+      reader.readAsDataURL(selectedFile)
+
+      reader.onloadend = async () => {
+        try {
+          const base64 = (reader.result as string).split(',')[1]
+
+          // Subir imagen al servidor
+          const uploadRes = await fetch('/api/upload-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64 }),
+          })
+
+          if (!uploadRes.ok) {
+            showToast('Error al subir la imagen', 'error')
+            setUploadingPhoto(false)
+            return
+          }
+
+          const uploadData = await uploadRes.json()
+          const imageUrl = uploadData.url
+
+          if (!imageUrl) {
+            showToast('Error al obtener URL de imagen', 'error')
+            setUploadingPhoto(false)
+            return
+          }
+
+          // Guardar URL en la base de datos
+          const res = await fetch('/api/user/profile-image', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ image_url: imageUrl }),
+          })
+
+          if (res.ok) {
+            showToast('Foto de perfil actualizada', 'success')
+            setShowPhotoModal(false)
+            setSelectedFile(null)
+            setPreviewUrl(null)
+            fetchDashboard()
+          } else {
+            showToast('Error al actualizar la foto', 'error')
+          }
+        } catch (err) {
+          console.error('Error in upload:', err)
+          showToast('Error al subir la imagen', 'error')
+        }
+        setUploadingPhoto(false)
+      }
+    } catch (error) {
+      console.error('Error updating profile image:', error)
+      showToast('Error al actualizar la foto', 'error')
+      setUploadingPhoto(false)
+    }
+  }
+
+  const topCarouselImages = [
     { id: 1, image_url: 'https://i.ibb.co/vvCT1Nw8/IMG-20260125-204722-207.jpg' },
     { id: 2, image_url: 'https://i.ibb.co/6RYtnH54/IMG-20260125-204721-945.jpg' },
     { id: 3, image_url: 'https://i.ibb.co/fVzQG86z/IMG-20260125-204721-462.jpg' },
@@ -329,18 +432,8 @@ export default function HomePage() {
     <div className="min-h-screen pb-20">
       <ScreenshotProtection />
       <div className="max-w-screen-xl mx-auto p-6 space-y-6">
-        {/* Header con botón salir */}
-        <div className="flex justify-end relative z-10">
-          <button
-            onClick={handleLogout}
-            className="text-blue-bright hover:text-gold transition-colors text-sm"
-          >
-            Salir
-          </button>
-        </div>
-
         {/* Portada con Carrusel y Perfil */}
-        <div className="relative -mt-4">
+        <div className="relative -mt-6">
           {/* Carrusel como portada */}
           <div className="reveal-float">
             <Carousel images={topCarouselImages} />
@@ -348,16 +441,36 @@ export default function HomePage() {
 
           {/* Avatar posicionado en la parte baja del carrusel (mitad encima) */}
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold text-4xl shadow-lg shadow-gold/50 border-4 border-dark-card">
-              {data.user.username?.charAt(0).toUpperCase() || 'U'}
-            </div>
+            <button
+              onClick={() => setShowPhotoModal(true)}
+              className="w-20 h-20 rounded-full bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold shadow-lg shadow-gold/50 border-4 border-dark-card overflow-hidden hover:scale-105 transition-transform duration-300 relative group"
+            >
+              {data.user.profile_image_url ? (
+                <img
+                  src={data.user.profile_image_url}
+                  alt="Foto de perfil"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl">{data.user.username?.charAt(0).toUpperCase() || 'U'}</span>
+              )}
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-white text-[8px] text-center px-1">Cambiar foto</span>
+              </div>
+            </button>
           </div>
         </div>
 
         {/* Nombre y usuario debajo del avatar (con espacio de 5px desde el borde del avatar) */}
-        <div className="text-center" style={{ marginTop: '69px' }}>
+        <div className="text-center" style={{ marginTop: '45px' }}>
           <p className="text-lg font-bold text-text-primary">{data.user.full_name}</p>
           <p className="text-sm text-gold">@{data.user.username}</p>
+          <button
+            onClick={handleLogout}
+            className="mt-2 px-3 py-1 text-[10px] text-text-secondary border border-text-secondary/30 rounded-full hover:border-red-400 hover:text-red-400 hover:scale-105 transition-all duration-300"
+          >
+            Salir
+          </button>
         </div>
 
         {data.announcements.length > 0 && showAnnouncements && (
@@ -641,8 +754,16 @@ export default function HomePage() {
                 const initial = user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'
                 return (
                   <div key={`${user.id}-${index}`} className="profile-card p-0.5 min-w-[50px]">
-                    <div className="profile-avatar flex items-center justify-center bg-gold/5 border border-gold text-gold font-bold rounded-full w-[16px] h-[16px] text-[8px] shadow-[0_0_2px_rgba(255,193,7,0.2)]">
-                      {initial}
+                    <div className="profile-avatar flex items-center justify-center bg-gold/5 border border-gold text-gold font-bold rounded-full w-[16px] h-[16px] text-[8px] shadow-[0_0_2px_rgba(255,193,7,0.2)] overflow-hidden">
+                      {user.profile_image_url ? (
+                        <img
+                          src={user.profile_image_url}
+                          alt={user.full_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        initial
+                      )}
                     </div>
                     <div className="profile-info">
                       <p className="profile-name text-gold/90 text-[6px] leading-tight truncate w-full text-center">{user.full_name?.split(' ')[0] || 'User'}</p>
@@ -677,6 +798,69 @@ export default function HomePage() {
       >
         <span className="text-sm font-bold">i</span>
       </button>
+
+      {/* Modal - Foto de Perfil */}
+      {showPhotoModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center p-4">
+          <div className="bg-dark-card rounded-card p-6 max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-gold font-bold">Actualizar foto de perfil</h3>
+              <button
+                onClick={() => {
+                  setShowPhotoModal(false)
+                  setSelectedFile(null)
+                  setPreviewUrl(null)
+                }}
+                className="text-text-secondary hover:text-gold"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-text-secondary text-xs">
+              Selecciona una foto desde tu dispositivo (máx. 5MB)
+            </p>
+
+            {/* Preview de la imagen */}
+            <div className="flex justify-center">
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gold"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-dark-bg border-2 border-dashed border-gold/50 flex items-center justify-center">
+                  <span className="text-text-secondary text-xs text-center px-2">Sin foto</span>
+                </div>
+              )}
+            </div>
+
+            {/* Input de archivo */}
+            <label className="block w-full cursor-pointer">
+              <div className="w-full px-4 py-3 bg-dark-bg border border-gold/30 rounded-btn text-center hover:border-gold transition-colors">
+                <span className="text-gold text-sm">
+                  {selectedFile ? selectedFile.name : 'Seleccionar imagen'}
+                </span>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+            </label>
+
+            <Button
+              variant="primary"
+              className="w-full"
+              onClick={handleUpdateProfileImage}
+              disabled={uploadingPhoto || !selectedFile}
+            >
+              {uploadingPhoto ? 'Subiendo...' : 'Guardar foto'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Modal - Sobre Nosotros */}
       {showAboutUs && (
