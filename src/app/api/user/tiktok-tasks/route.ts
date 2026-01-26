@@ -183,8 +183,30 @@ export async function POST(req: NextRequest) {
     const newTotal = (completedTasks.length + 1) * BONUS_PER_TASK
     const isComplete = newTotal >= MAX_BONUS
 
-    // Si completó las 4 tareas, eliminar las imágenes de Storage
+    // Si completó las 4 tareas, abonar inmediatamente a la billetera y eliminar imágenes
     if (isComplete) {
+      // Verificar si ya se abonó el bono (para evitar duplicados)
+      const existingBonus = await prisma.walletLedger.findFirst({
+        where: {
+          user_id: userId,
+          type: 'TIKTOK_BONUS',
+        },
+      })
+
+      // Solo abonar si no existe un bono previo
+      if (!existingBonus) {
+        // Abonar los 10 Bs inmediatamente a la billetera
+        await prisma.walletLedger.create({
+          data: {
+            user_id: userId,
+            type: 'TIKTOK_BONUS',
+            amount_bs: MAX_BONUS,
+            description: 'Bono por completar tareas de TikTok',
+          },
+        })
+        console.log(`[TIKTOK] Bs ${MAX_BONUS} abonados a billetera del usuario ${userId}`)
+      }
+
       // Obtener todas las URLs de screenshots (incluyendo la recién agregada)
       const allTasks = await prisma.tikTokTask.findMany({
         where: { user_id: userId },

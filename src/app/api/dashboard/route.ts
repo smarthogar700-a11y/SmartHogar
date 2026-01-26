@@ -265,7 +265,6 @@ export async function GET(req: NextRequest) {
       latestUsers = await prisma.user.findMany({
         where: { role: { not: 'ADMIN' } },
         orderBy: { created_at: 'desc' },
-        take: 30,
         select: {
           id: true,
           username: true,

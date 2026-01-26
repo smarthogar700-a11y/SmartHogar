@@ -152,15 +152,12 @@ export default function TikTokTasks() {
           <div className="text-5xl">🎉</div>
           <h3 className="text-xl font-bold text-gold">¡Felicidades!</h3>
           <p className="text-text-secondary text-sm">
-            Has acumulado <span className="text-gold font-bold">Bs {data.total_earned.toFixed(2)}</span>
+            ¡Ya tienes <span className="text-gold font-bold">Bs {data.total_earned.toFixed(2)}</span> en tu billetera!
           </p>
           <div className="bg-dark-card rounded-lg p-4 border border-gold/30">
             <p className="text-text-primary text-sm leading-relaxed">
-              Para retirar tus ganancias, <span className="text-gold font-bold">actívate con cualquier plan VIP</span> y
-              gana el porcentaje adicional según el VIP adquirido.
-            </p>
-            <p className="text-xs text-text-secondary mt-2">
-              Al activar tu VIP, estos Bs {data.total_earned.toFixed(2)} se bonificarán automáticamente a tu billetera.
+              <span className="text-gold font-bold">Actívate con cualquier plan VIP</span> para poder retirar tus ganancias
+              y ganar el porcentaje adicional según el VIP adquirido.
             </p>
           </div>
           <Button
