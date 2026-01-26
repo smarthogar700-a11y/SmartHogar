@@ -260,11 +260,12 @@ export default function HomePage() {
     router.push('/login')
   }
 
-  const topCarouselImages = [
-    { id: 1, image_url: 'https://i.ibb.co/HL53VtPR/Chat-GPT-Image-11-ene-2026-16-15-56.png' },
-    { id: 2, image_url: 'https://i.ibb.co/YBCMSfKN/Chat-GPT-Image-11-ene-2026-16-20-32.png' },
-    { id: 3, image_url: 'https://i.ibb.co/MxkpXMQx/Chat-GPT-Image-11-ene-2026-16-41-30.png' },
-    { id: 4, image_url: 'https://i.ibb.co/s9DLWBhL/Chat-GPT-Image-11-ene-2026-16-49-11.png' },
+   const topCarouselImages = [
+    { id: 1, image_url: 'https://i.ibb.co/vvCT1Nw8/IMG-20260125-204722-207.jpg' },
+    { id: 2, image_url: 'https://i.ibb.co/6RYtnH54/IMG-20260125-204721-945.jpg' },
+    { id: 3, image_url: 'https://i.ibb.co/fVzQG86z/IMG-20260125-204721-462.jpg' },
+    { id: 4, image_url: 'https://i.ibb.co/tMvNghCr/IMG-20260125-204721-506.jpg' },
+    { id: 5, image_url: 'https://i.ibb.co/wNB0sGD2/IMG-20260125-204722-215.jpg' },
   ]
 
   const referralLink = data
