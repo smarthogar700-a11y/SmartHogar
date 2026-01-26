@@ -754,13 +754,12 @@ export default function HomePage() {
                 const initial = user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'
                 return (
                   <div key={`${user.id}-${index}`} className="profile-card p-0.5 min-w-[50px]">
-                    <div className="profile-avatar flex items-center justify-center bg-gold/5 border border-gold text-gold font-bold rounded-full w-[20px] h-[20px] text-[8px] shadow-[0_0_2px_rgba(255,193,7,0.2)] overflow-hidden mx-auto">
+                    <div className="profile-avatar bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold rounded-full w-[18px] h-[18px] text-[7px] shadow-[0_0_3px_rgba(255,193,7,0.3)] border border-dark-card overflow-hidden">
                       {user.profile_image_url ? (
                         <img
                           src={user.profile_image_url}
                           alt={user.full_name}
-                          className="w-full h-full object-cover object-center"
-                          style={{ minWidth: '100%', minHeight: '100%' }}
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         initial
