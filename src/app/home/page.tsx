@@ -516,7 +516,7 @@ export default function HomePage() {
               </div>
               <Button
                 variant="outline"
-                className="w-full animate-shake-glow border-gold bg-gradient-to-r from-gold/20 to-gold-bright/20 hover:from-gold/40 hover:to-gold-bright/40"
+                className="w-full animate-pulse border-gold bg-gradient-to-r from-gold/20 to-gold-bright/20 hover:from-gold/40 hover:to-gold-bright/40"
                 onClick={copyReferralLink}
               >
                 <span className="flex items-center justify-center gap-2">
@@ -530,7 +530,7 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-2 mt-5">
                 <Button
                   variant="outline"
-                  className="animate-whatsapp border-[#25D366] bg-gradient-to-r from-[#25D366]/20 to-[#128C7E]/20 hover:from-[#25D366]/40 hover:to-[#128C7E]/40 text-white transition-all duration-300 py-1.5"
+                  className="animate-pulse border-[#25D366] bg-gradient-to-r from-[#25D366]/20 to-[#128C7E]/20 hover:from-[#25D366]/40 hover:to-[#128C7E]/40 text-white transition-all duration-300 py-1.5"
                   onClick={() => window.open('https://whatsapp.com/channel/0029VbBz3tyJf05fba9YPP3A', '_blank')}
                 >
                   <span className="flex flex-col items-center justify-center gap-0.5">
@@ -542,7 +542,7 @@ export default function HomePage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="animate-whatsapp border-[#25D366] bg-gradient-to-r from-[#128C7E]/20 to-[#25D366]/20 hover:from-[#128C7E]/40 hover:to-[#25D366]/40 text-white transition-all duration-300 py-1.5"
+                  className="animate-pulse border-[#25D366] bg-gradient-to-r from-[#128C7E]/20 to-[#25D366]/20 hover:from-[#128C7E]/40 hover:to-[#25D366]/40 text-white transition-all duration-300 py-1.5"
                   onClick={() => window.open('https://chat.whatsapp.com/E7mJOTkORb2JOwRw008LSm?mode=gi_c', '_blank')}
                 >
                   <span className="flex flex-col items-center justify-center gap-0.5">
