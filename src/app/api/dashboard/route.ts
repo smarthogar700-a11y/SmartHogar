@@ -262,7 +262,7 @@ export async function GET(req: NextRequest) {
 
     let latestUsers: any[] = []
     try {
-      latestUsers = await prisma.user.findMany({
+      const users = await prisma.user.findMany({
         where: { role: { not: 'ADMIN' } },
         orderBy: { created_at: 'desc' },
         select: {
@@ -271,7 +271,40 @@ export async function GET(req: NextRequest) {
           full_name: true,
           created_at: true,
           profile_image_url: true,
+          purchases: {
+            where: { status: 'ACTIVE' },
+            select: {
+              vip_package: {
+                select: { daily_profit_bs: true }
+              }
+            }
+          },
+          wallet_ledger: {
+            select: { amount_bs: true, type: true }
+          }
         },
+      })
+
+      // Calcular ganancias de cada usuario
+      latestUsers = users.map(u => {
+        // Calcular ganancias totales (solo tipos de ganancia)
+        const totalEarnings = u.wallet_ledger
+          .filter(w => ['DAILY_PROFIT', 'REFERRAL_BONUS', 'ADJUSTMENT', 'TIKTOK_BONUS'].includes(w.type))
+          .reduce((sum, w) => sum + (w.amount_bs || 0), 0)
+
+        // Calcular balance de billetera (todas las transacciones)
+        const walletBalance = u.wallet_ledger.reduce((sum, w) => sum + (w.amount_bs || 0), 0)
+
+        return {
+          id: u.id,
+          username: u.username,
+          full_name: u.full_name,
+          created_at: u.created_at,
+          profile_image_url: u.profile_image_url,
+          daily_profit: u.purchases.reduce((sum, p) => sum + (p.vip_package?.daily_profit_bs || 0), 0),
+          total_earnings: totalEarnings,
+          wallet_balance: walletBalance
+        }
       })
     } catch (error) {
       console.error('Dashboard latest users error:', error)

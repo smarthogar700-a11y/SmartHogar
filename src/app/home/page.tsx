@@ -69,7 +69,50 @@ interface DashboardData {
     full_name: string
     created_at: string
     profile_image_url?: string | null
+    daily_profit?: number
+    total_earnings?: number
+    wallet_balance?: number
   }[]
+}
+
+// Nombres falsos para la comunidad en movimiento
+const FAKE_NAMES = [
+  'Carlos M.', 'María L.', 'Juan P.', 'Ana R.', 'Pedro S.', 'Laura G.', 'Diego F.', 'Carmen V.',
+  'Roberto H.', 'Sofía T.', 'Miguel A.', 'Patricia C.', 'Fernando B.', 'Gabriela M.', 'José L.',
+  'Valentina R.', 'Andrés K.', 'Lucía P.', 'Ricardo N.', 'Isabella Q.', 'Eduardo Z.', 'Camila W.',
+  'Francisco J.', 'Daniela X.', 'Alberto Y.', 'Mariana U.', 'Sergio I.', 'Natalia O.', 'Jorge E.',
+  'Alejandra D.', 'Luis C.', 'Fernanda B.', 'Raúl A.', 'Paula S.', 'Gustavo T.', 'Andrea M.',
+  'Martín L.', 'Claudia R.', 'Nicolás P.', 'Verónica G.', 'Héctor F.', 'Silvia V.', 'Ramiro H.',
+  'Mónica T.', 'Cristian A.', 'Lorena C.', 'Javier B.', 'Carolina M.', 'Óscar L.', 'Estefanía R.'
+]
+
+// Generar perfiles falsos con ganancias aleatorias intercaladas
+const generateFakeProfiles = () => {
+  // Rangos intercalados para ganancias diarias (máx 349 Bs)
+  const dailyRanges = [
+    { min: 15, max: 50 },
+    { min: 51, max: 100 },
+    { min: 101, max: 180 },
+    { min: 181, max: 250 },
+    { min: 251, max: 349 }
+  ]
+
+  return FAKE_NAMES.map((name, index) => {
+    // Seleccionar rango intercalado según índice
+    const range = dailyRanges[index % dailyRanges.length]
+    const dailyProfit = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min
+    const totalProfit = Math.floor(Math.random() * 29000) + 1000 // 1000 - 30000 Bs total
+    const walletBalance = Math.floor(Math.random() * 15000) + 500 // 500 - 15500 Bs en billetera
+    return {
+      id: `fake-${index}`,
+      username: name.toLowerCase().replace(/[.\s]/g, '') + Math.floor(Math.random() * 100),
+      full_name: name,
+      daily_profit: dailyProfit,
+      total_profit: totalProfit,
+      wallet_balance: walletBalance,
+      isFake: true
+    }
+  })
 }
 
 export default function HomePage() {
@@ -88,6 +131,7 @@ export default function HomePage() {
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [fakeProfiles] = useState(generateFakeProfiles)
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -560,6 +604,94 @@ export default function HomePage() {
         {/* TikTok Tasks - Solo para usuarios sin VIP */}
         {!data.has_active_vip && <TikTokTasks />}
 
+        {/* Testimonios Animados */}
+        <div className="reveal-stagger">
+          <div className="text-center mb-4">
+            <h2 className="profile-title">Testimonios de la comunidad</h2>
+            <p className="profile-subtitle">Historias reales de personas que cambiaron su vida</p>
+          </div>
+          <div className="reel-container rounded-xl">
+            <div className="testimonials-reel">
+              {/* Primera copia de testimonios */}
+              {fakeProfiles.map((profile, index) => {
+                const stars = Math.floor(Math.random() * 2) + 4 // 4-5 estrellas
+                const testimonialTexts = [
+                  `Gracias a Smart Hogar logré ganar más de ${profile.total_profit?.toLocaleString('es-BO')} Bs. ¡Increíble oportunidad!`,
+                  `Smart Hogar cambió mi vida. Ya llevo ganados ${profile.total_profit?.toLocaleString('es-BO')} Bs trabajando desde casa.`,
+                  `Nunca pensé que podría ganar ${profile.total_profit?.toLocaleString('es-BO')} Bs extras. Smart Hogar es real.`,
+                  `Con Smart Hogar gano ${profile.daily_profit} Bs diarios. ¡Es perfecto!`,
+                  `${profile.total_profit?.toLocaleString('es-BO')} Bs en ganancias. Smart Hogar superó mis expectativas.`,
+                  `Gracias a Smart Hogar pude ahorrar ${profile.wallet_balance?.toLocaleString('es-BO')} Bs. ¡Increíble!`,
+                  `${profile.daily_profit} Bs diarios trabajando desde mi hogar. Smart Hogar es fantástico.`,
+                  `Smart Hogar me dio la libertad financiera. Ya tengo ${profile.wallet_balance?.toLocaleString('es-BO')} Bs en mi billetera.`
+                ]
+                const text = testimonialTexts[index % testimonialTexts.length]
+                return (
+                  <div key={`testimonial-1-${index}`} className="testimonial-card-reel">
+                    <div className="stars-reel">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="star-reel">{i < stars ? '★' : '☆'}</span>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-azul-acero to-azul-claro flex items-center justify-center text-[10px] text-dark-bg font-bold">
+                        {profile.full_name.charAt(0)}
+                      </div>
+                      <span className="text-white text-[11px] font-semibold">{profile.full_name}</span>
+                    </div>
+                    <p className="text-[9px] text-white/90 leading-relaxed">
+                      {text.split(profile.total_profit?.toLocaleString('es-BO') || '').map((part, i, arr) => (
+                        <span key={i}>
+                          {part}
+                          {i < arr.length - 1 && <span className="earnings-badge">{profile.total_profit?.toLocaleString('es-BO')} Bs</span>}
+                        </span>
+                      ))}
+                    </p>
+                  </div>
+                )
+              })}
+              {/* Segunda copia para loop infinito */}
+              {fakeProfiles.map((profile, index) => {
+                const stars = Math.floor(Math.random() * 2) + 4
+                const testimonialTexts = [
+                  `Gracias a Smart Hogar logré ganar más de ${profile.total_profit?.toLocaleString('es-BO')} Bs. ¡Increíble oportunidad!`,
+                  `Smart Hogar cambió mi vida. Ya llevo ganados ${profile.total_profit?.toLocaleString('es-BO')} Bs trabajando desde casa.`,
+                  `Nunca pensé que podría ganar ${profile.total_profit?.toLocaleString('es-BO')} Bs extras. Smart Hogar es real.`,
+                  `Con Smart Hogar gano ${profile.daily_profit} Bs diarios. ¡Es perfecto!`,
+                  `${profile.total_profit?.toLocaleString('es-BO')} Bs en ganancias. Smart Hogar superó mis expectativas.`,
+                  `Gracias a Smart Hogar pude ahorrar ${profile.wallet_balance?.toLocaleString('es-BO')} Bs. ¡Increíble!`,
+                  `${profile.daily_profit} Bs diarios trabajando desde mi hogar. Smart Hogar es fantástico.`,
+                  `Smart Hogar me dio la libertad financiera. Ya tengo ${profile.wallet_balance?.toLocaleString('es-BO')} Bs en mi billetera.`
+                ]
+                const text = testimonialTexts[index % testimonialTexts.length]
+                return (
+                  <div key={`testimonial-2-${index}`} className="testimonial-card-reel">
+                    <div className="stars-reel">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="star-reel">{i < stars ? '★' : '☆'}</span>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-azul-acero to-azul-claro flex items-center justify-center text-[10px] text-dark-bg font-bold">
+                        {profile.full_name.charAt(0)}
+                      </div>
+                      <span className="text-white text-[11px] font-semibold">{profile.full_name}</span>
+                    </div>
+                    <p className="text-[9px] text-white/90 leading-relaxed">
+                      {text.split(profile.total_profit?.toLocaleString('es-BO') || '').map((part, i, arr) => (
+                        <span key={i}>
+                          {part}
+                          {i < arr.length - 1 && <span className="earnings-badge">{profile.total_profit?.toLocaleString('es-BO')} Bs</span>}
+                        </span>
+                      ))}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
@@ -748,38 +880,69 @@ export default function HomePage() {
               Nunca dejes para mañana lo que hoy puedes hacer
             </p>
           </div>
-          <div className="profile-column">
-            {data.latest_users && data.latest_users.length > 0 ? (
-              data.latest_users.map((user, index) => {
-                const initial = user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'
-                return (
-                  <div key={`${user.id}-${index}`} className="profile-card p-0.5 min-w-[50px]">
-                    <div className="profile-avatar bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold rounded-full w-[18px] h-[18px] text-[7px] shadow-[0_0_3px_rgba(255,193,7,0.3)] border border-dark-card overflow-hidden">
-                      {user.profile_image_url ? (
-                        <img
-                          src={user.profile_image_url}
-                          alt={user.full_name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        initial
-                      )}
+          <div className="space-y-1 max-h-[350px] overflow-y-auto scrollbar-hide">
+            {(() => {
+              // Crear perfiles reales con formato compatible (usando sus ganancias reales)
+              const realProfiles = (data.latest_users || []).map((user: any) => ({
+                id: user.id,
+                username: user.username,
+                full_name: user.full_name,
+                profile_image_url: user.profile_image_url,
+                daily_profit: user.daily_profit || 0,
+                total_profit: user.total_earnings || 0,
+                wallet_balance: user.wallet_balance || 0,
+                isFake: false
+              }))
+
+              // Mezclar perfiles falsos con reales
+              const allProfiles = [...fakeProfiles, ...realProfiles]
+                .sort(() => Math.random() - 0.5)
+
+              return allProfiles.length > 0 ? (
+                allProfiles.map((profile, index) => {
+                  const initial = profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'
+                  const isReal = !profile.isFake
+                  return (
+                    <div key={`${profile.id}-${index}`} className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-[rgba(5,38,89,0.3)] border border-[rgba(84,131,179,0.15)]">
+                      {/* Izquierda: Avatar + Nombre */}
+                      <div className="flex items-center gap-1.5">
+                        <div className="bg-gradient-to-br from-gold to-gold-bright flex items-center justify-center text-dark-bg font-bold rounded-full w-[20px] h-[20px] text-[8px] overflow-hidden flex-shrink-0">
+                          {isReal && (profile as any).profile_image_url ? (
+                            <img
+                              src={(profile as any).profile_image_url}
+                              alt={profile.full_name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            initial
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-gold/90 text-[8px] leading-tight font-medium">{profile.full_name?.split(' ')[0]}</p>
+                          <p className="text-[6px] text-text-secondary leading-none">@{profile.username?.slice(0, 8)}</p>
+                        </div>
+                      </div>
+                      {/* Derecha: Ganancias */}
+                      <div className="text-right">
+                        <p className="text-[6px] text-text-secondary leading-tight">
+                          Gan. diarias: <span className="text-gold">Bs {profile.daily_profit?.toLocaleString('es-BO')}</span>
+                        </p>
+                        <p className="text-[6px] text-text-secondary leading-tight">
+                          Gan. totales: <span className="text-green-400">Bs {profile.total_profit?.toLocaleString('es-BO')}</span>
+                        </p>
+                        <p className="text-[6px] text-text-secondary leading-tight">
+                          Billetera: <span className="text-blue-400">Bs {profile.wallet_balance?.toLocaleString('es-BO')}</span>
+                        </p>
+                      </div>
                     </div>
-                    <div className="profile-info">
-                      <p className="profile-name text-gold/90 text-[6px] leading-tight truncate w-full text-center">{user.full_name?.split(' ')[0] || 'User'}</p>
-                      <p className="profile-meta text-[5px] text-text-secondary leading-none mt-0.5 truncate w-full text-center">@{user.username}</p>
-                      <p className="profile-meta text-[4px] text-green-400 opacity-80 mt-0.5 text-center">
-                        ●
-                      </p>
-                    </div>
-                  </div>
-                )
-              })
-            ) : (
-              <div className="p-4 text-center">
-                <p className="text-xs text-text-secondary">Uniendo a la comunidad...</p>
-              </div>
-            )}
+                  )
+                })
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-xs text-text-secondary">Uniendo a la comunidad...</p>
+                </div>
+              )
+            })()}
           </div>
         </div>
 

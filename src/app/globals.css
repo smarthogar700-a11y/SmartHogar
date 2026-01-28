@@ -355,3 +355,126 @@ body {
 .animate-marquee-slower:hover {
   animation-play-state: paused;
 }
+
+/* Utilidad para pausar animaciones en hover */
+.hover\:pause:hover {
+  animation-play-state: paused;
+}
+
+/* Animación marquee más larga para muchos elementos */
+@keyframes marquee-community {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-community {
+  animation: marquee-community 60s linear infinite;
+}
+
+.animate-marquee-community:hover {
+  animation-play-state: paused;
+}
+
+/* Testimonios Reel Animation */
+.testimonials-reel {
+  display: flex;
+  gap: 12px;
+  animation: scrollReel 120s linear infinite;
+  width: max-content;
+}
+
+@keyframes scrollReel {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.reel-container {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.reel-container:hover .testimonials-reel {
+  animation-play-state: paused;
+}
+
+.testimonial-card-reel {
+  background: rgba(5, 38, 89, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(84, 131, 179, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  width: 220px;
+  min-height: 100px;
+  flex-shrink: 0;
+}
+
+.testimonial-card-reel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(193, 232, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s;
+}
+
+.testimonial-card-reel:hover::before {
+  left: 100%;
+}
+
+.testimonial-card-reel:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 45px rgba(84, 131, 179, 0.3);
+  border-color: rgba(193, 232, 255, 0.5);
+}
+
+.stars-reel {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.star-reel {
+  color: #C1E8FF;
+  font-size: 10px;
+  text-shadow: 0 2px 8px rgba(193, 232, 255, 0.5);
+}
+
+.earnings-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #5483B3, #7DA0CA);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #021024;
+  box-shadow: 0 4px 15px rgba(84, 131, 179, 0.4);
+  animation: earningsPulse 2s ease-in-out infinite;
+}
+
+@keyframes earningsPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(84, 131, 179, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(193, 232, 255, 0.6);
+  }
+}
