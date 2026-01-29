@@ -1,0 +1,480 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+:root {
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* 🎨 Paleta "Blue Depth" (Azul Profundo) */
+  --azul-noche: #021024;
+  --azul-armada: #052659;
+  --azul-acero: #5483B3;
+  --azul-claro: #7DA0CA;
+  --azul-hielo: #C1E8FF;
+
+  --bg-app: #021024;
+  --text-primary: #FFFFFF;
+  --text-secondary: #7DA0CA;
+
+  --accent-primary: #5483B3;
+  --accent-secondary: #052659;
+
+  /* Botones Defaults */
+  --btn-primary-bg: linear-gradient(135deg, #5483B3 0%, #052659 100%);
+  --btn-primary-text: #FFFFFF;
+
+  /* Glass Defaults */
+  --glass-bg: rgba(2, 16, 36, 0.85);
+  --glass-border: rgba(84, 131, 179, 0.3);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  font-family: var(--font-inter), sans-serif;
+  background: radial-gradient(circle at 50% 0%, #052659 0%, #021024 80%) !important;
+  background-attachment: fixed !important;
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .glass-effect {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 30px var(--glass-shadow);
+    backdrop-filter: blur(10px);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .reveal-float {
+    animation: revealFloat 700ms ease-out both;
+  }
+
+  .reveal-stagger {
+    animation: revealFloat 700ms ease-out both;
+    animation-delay: 120ms;
+  }
+
+  /* Blue Theme Utilities */
+  .blue-glow {
+    box-shadow: 0 0 15px rgba(125, 160, 202, 0.4);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 8px rgba(193, 232, 255, 0.6);
+  }
+
+  /* Compatibilidad con clases antiguas */
+  .gold-glow {
+    text-shadow: 0 0 10px rgba(193, 232, 255, 0.5);
+    /* Blue glow fallback */
+  }
+
+  .text-gold {
+    color: var(--azul-hielo);
+  }
+}
+
+@keyframes revealFloat {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoDepth {
+
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes shine-blue {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulse-electric {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(41, 121, 255, 0.5), 0 0 30px rgba(0, 229, 255, 0.3);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(41, 121, 255, 0.8), 0 0 45px rgba(0, 229, 255, 0.5);
+    transform: scale(1.02);
+  }
+}
+
+/* Profile Styles adapted to Blue */
+.profile-title {
+  color: var(--azul-hielo);
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(84, 131, 179, 0.4);
+}
+
+.profile-subtitle {
+  color: var(--text-secondary);
+  opacity: 0.7;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.profile-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.profile-column::-webkit-scrollbar {
+  display: none;
+}
+
+.profile-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(5, 38, 89, 0.3);
+  border: 1px solid rgba(84, 131, 179, 0.2);
+  overflow: hidden;
+  min-height: 84px;
+  backdrop-filter: blur(5px);
+  transition: all 0.4s ease;
+  animation: profileFloat 3.2s ease-in-out infinite;
+}
+
+.profile-card:hover {
+  background: rgba(5, 38, 89, 0.6);
+  border-color: var(--azul-acero);
+  box-shadow: 0 0 20px rgba(84, 131, 179, 0.2);
+  transform: translateY(-2px);
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid var(--azul-acero);
+  box-shadow: 0 0 15px rgba(5, 38, 89, 0.5);
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-name {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-meta {
+  color: var(--text-secondary);
+  font-size: 11px;
+  opacity: 0.8;
+  letter-spacing: 0.08em;
+}
+
+.profile-rank {
+  color: var(--azul-hielo);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+}
+
+.profile-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(193, 232, 255, 0.1), transparent);
+  opacity: 0.3;
+  transform: translateX(-100%);
+  animation: profileGlow 4.5s ease-in-out infinite;
+}
+
+@keyframes profileFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes profileGlow {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(120%);
+  }
+
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+/* Animación de pulso adelante-atrás para botón de referido */
+@keyframes pulseZoom {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(193, 232, 255, 0.3);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 30px rgba(193, 232, 255, 0.8);
+  }
+}
+
+.animate-shake-glow {
+  animation: pulseZoom 2.5s ease-in-out infinite;
+}
+
+.animate-shake-glow:hover {
+  animation: none;
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(193, 232, 255, 0.7);
+}
+
+/* Animación de WhatsApp - pulso verde elegante */
+@keyframes whatsappPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(37, 211, 102, 0.7), 0 0 40px rgba(37, 211, 102, 0.3);
+  }
+}
+
+.animate-whatsapp {
+  animation: whatsappPulse 2s ease-in-out infinite;
+}
+
+.animate-whatsapp:hover {
+  animation: none;
+  transform: scale(1.08);
+  box-shadow: 0 0 30px rgba(37, 211, 102, 0.8), 0 0 50px rgba(37, 211, 102, 0.4);
+}
+
+/* Animación marquee infinita para reseñas */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 15s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.animate-marquee-slow {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee-slow:hover {
+  animation-play-state: paused;
+}
+
+.animate-marquee-slower {
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee-slower:hover {
+  animation-play-state: paused;
+}
+
+/* Utilidad para pausar animaciones en hover */
+.hover\:pause:hover {
+  animation-play-state: paused;
+}
+
+/* Animación marquee más larga para muchos elementos */
+@keyframes marquee-community {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-community {
+  animation: marquee-community 60s linear infinite;
+}
+
+.animate-marquee-community:hover {
+  animation-play-state: paused;
+}
+
+/* Testimonios Reel Animation */
+.testimonials-reel {
+  display: flex;
+  gap: 12px;
+  animation: scrollReel 120s linear infinite;
+  width: max-content;
+}
+
+@keyframes scrollReel {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.reel-container {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.reel-container:hover .testimonials-reel {
+  animation-play-state: paused;
+}
+
+.testimonial-card-reel {
+  background: rgba(5, 38, 89, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(84, 131, 179, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  width: 220px;
+  min-height: 100px;
+  flex-shrink: 0;
+}
+
+.testimonial-card-reel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(193, 232, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s;
+}
+
+.testimonial-card-reel:hover::before {
+  left: 100%;
+}
+
+.testimonial-card-reel:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 45px rgba(84, 131, 179, 0.3);
+  border-color: rgba(193, 232, 255, 0.5);
+}
+
+.stars-reel {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.star-reel {
+  color: #C1E8FF;
+  font-size: 10px;
+  text-shadow: 0 2px 8px rgba(193, 232, 255, 0.5);
+}
+
+.earnings-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #5483B3, #7DA0CA);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #021024;
+  box-shadow: 0 4px 15px rgba(84, 131, 179, 0.4);
+  animation: earningsPulse 2s ease-in-out infinite;
+}
+
+@keyframes earningsPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(84, 131, 179, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(193, 232, 255, 0.6);
+  }
+}
