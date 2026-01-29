@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PurchaseStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PAID
+  REJECTED
+}
+
+enum LedgerType {
+  DAILY_PROFIT
+  REFERRAL_BONUS
+  WITHDRAW_REQUEST
+  WITHDRAW_REJECT
+  ADJUSTMENT
+  TIKTOK_BONUS
+}
+
+enum TikTokTaskType {
+  FOLLOW
+  LIKE
+  COMMENT
+  SHARE
+}
+
+enum BannerLocation {
+  HOME_TOP
+  HOME_BOTTOM
+}
+
+model User {
+  id            String   @id @default(cuid())
+  user_code     String   @unique
+  username      String   @unique
+  email         String   @unique
+  password_hash String
+  full_name     String
+  profile_image_url String?
+  role          UserRole @default(USER)
+
+  sponsor_id    String?
+  sponsor       User?    @relation("SponsorTree", fields: [sponsor_id], references: [id], onDelete: SetNull)
+  referrals     User[]   @relation("SponsorTree")
+
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  purchases        Purchase[]
+  wallet_ledger    WalletLedger[]
+  withdrawals      Withdrawal[]
+  password_resets  PasswordReset[]
+  tiktok_tasks     TikTokTask[]
+
+  @@index([sponsor_id])
+  @@index([user_code])
+  @@index([username])
+  @@index([email])
+}
+
+model VipPackage {
+  id               Int      @id @default(autoincrement())
+  level            Int      @unique
+  name             String
+  investment_bs    Float
+  daily_profit_bs  Float
+  is_enabled       Boolean  @default(true)
+  qr_image_url     String?
+  package_image_url String?
+
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  purchases        Purchase[]
+
+  @@index([level])
+}
+
+model Purchase {
+  id                String         @id @default(cuid())
+  user_id           String
+  user              User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  vip_package_id    Int
+  vip_package       VipPackage     @relation(fields: [vip_package_id], references: [id])
+
+  investment_bs     Float
+  daily_profit_bs   Float
+  receipt_url       String
+
+  status            PurchaseStatus @default(PENDING)
+  activated_at      DateTime?
+  last_profit_at    DateTime?
+  total_earned_bs   Float          @default(0)
+
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+
+  @@index([user_id])
+  @@index([status])
+  @@index([activated_at])
+  @@index([last_profit_at])
+}
+
+model WalletLedger {
+  id          String     @id @default(cuid())
+  user_id     String
+  user        User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  type        LedgerType
+  amount_bs   Float
+  description String?
+
+  created_at  DateTime   @default(now())
+
+  @@index([user_id])
+  @@index([type])
+  @@index([created_at])
+}
+
+model Withdrawal {
+  id               String           @id @default(cuid())
+  user_id          String
+  user             User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  amount_bs        Float
+  qr_image_url     String?
+  bank_name        String           @default("")
+  account_number   String           @default("")
+  payout_method    String           @default("")
+  phone_number     String           @default("")
+  status           WithdrawalStatus @default(PENDING)
+  receipt_url      String?
+
+  processed_at     DateTime?
+
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+
+  @@index([user_id])
+  @@index([status])
+}
+
+model ReferralBonusRule {
+  id            Int      @id @default(autoincrement())
+  level         Int      @unique
+  percentage    Float
+
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([level])
+}
+
+model Banner {
+  id          Int            @id @default(autoincrement())
+  location    BannerLocation
+  image_url   String
+  link_url    String?
+  order       Int            @default(0)
+  is_active   Boolean        @default(true)
+
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+
+  @@index([location, order])
+}
+
+model Announcement {
+  id         Int      @id @default(autoincrement())
+  title      String
+  body       String
+  is_active  Boolean  @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([is_active])
+  @@index([created_at])
+}
+
+model EffortBonus {
+  id                      Int      @id @default(autoincrement())
+  title                   String
+  target_kpi              String
+  level_description       String
+  amount_bs               Float
+  requirement_description String
+  sort_order              Int      @default(0)
+  is_active               Boolean  @default(true) 
+
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  
+  @@index([sort_order])
+}
+
+model PasswordReset {
+  id         String   @id @default(cuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+
+  created_at DateTime @default(now())
+
+  @@index([token])
+  @@index([user_id])
+}
+
+model DailyProfitRun {
+  id          Int      @id @default(1)
+  last_run_at DateTime
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price_bs    Float
+  image_url   String
+  is_active   Boolean  @default(true)
+  stock       Int      @default(0)
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([is_active])
+}
+
+model GlobalConfig {
+  id              Int      @id @default(1)
+  whatsapp_number String   @default("")
+
+  updated_at      DateTime @updatedAt
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  user_id     String
+  sender_role UserRole
+  message     String
+  is_read     Boolean  @default(false)
+
+  created_at  DateTime @default(now())
+
+  @@index([user_id])
+  @@index([user_id, is_read])
+  @@index([user_id, created_at(sort: Desc)])
+  @@index([sender_role, is_read])
+  @@index([created_at])
+}
+
+model TikTokTask {
+  id            String         @id @default(cuid())
+  user_id       String
+  user          User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  task_type     TikTokTaskType
+  screenshot_url String
+  amount_bs     Float          @default(2.50)
+
+  created_at    DateTime       @default(now())
+
+  @@index([user_id])
+  @@index([user_id, task_type])
+}
+
+model PushSubscription {
+  id            String   @id @default(cuid())
+  user_id       String?
+  endpoint      String   @unique
+  p256dh        String
+  auth          String
+
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([user_id])
+}
