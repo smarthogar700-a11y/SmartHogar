@@ -78,8 +78,9 @@ export default function WithdrawalsPage() {
     setError('')
 
     const amountNum = parseFloat(amount)
-    if (isNaN(amountNum) || amountNum < 10) {
-      setError('El monto minimo de retiro es Bs 10')
+    const allowedAmounts = [2000, 3000, 4000, 5000, 10000]
+    if (isNaN(amountNum) || !allowedAmounts.includes(amountNum)) {
+      setError('Solo se permiten retiros de Bs 2.000, 3.000, 4.000, 5.000 o 10.000')
       return
     }
 
@@ -194,7 +195,7 @@ export default function WithdrawalsPage() {
             Solicita tu retiro
           </p>
           <p className="mt-2 text-[10px] text-text-secondary">
-            Retiros desde Bs 10. Pagos de lunes a viernes. Se acreditan de 24 a 72 horas
+            Retiros desde Bs 2.000. Pagos de lunes a viernes. Se acreditan de 24 a 72 horas
             despues de la solicitud.
           </p>
           <p className="mt-2 text-[10px] text-text-secondary">
@@ -207,7 +208,7 @@ export default function WithdrawalsPage() {
             Las solicitudes deben realizarse unicamente con montos exactos:
           </p>
           <div className="flex flex-wrap gap-2 justify-center mb-6">
-            {[10, 50, 100, 200, 500, 1000].map((mont) => (
+            {[2000, 3000, 4000, 5000, 10000].map((mont) => (
               <button
                 key={mont}
                 onClick={() => setAmount(mont.toString())}
@@ -216,7 +217,7 @@ export default function WithdrawalsPage() {
                   : 'bg-transparent text-gold border-gold hover:bg-gold hover:text-black'
                   }`}
               >
-                {mont === 1000 ? '1.000' : mont}
+                {mont >= 1000 ? mont.toLocaleString('es-ES') : mont}
               </button>
             ))}
           </div>

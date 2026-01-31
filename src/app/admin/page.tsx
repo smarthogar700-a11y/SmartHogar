@@ -1904,7 +1904,7 @@ export default function AdminPage() {
                   : 'text-text-secondary hover:text-gold'
                   }`}
               >
-                <span className="text-xl mb-1 relative">
+                <span className="text-2xl mb-1 relative">
                   {item.icon}
                   {hasNotification && (
                     <span className="absolute -top-1 -right-1 flex h-3 w-3">
